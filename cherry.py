@@ -5,6 +5,8 @@
 
 # 2022/06/24    画像読み込み処理記述 → 確認
 #               サクランボデータ,画像読み込み処理記述(エクセルデータ使用)
+#               リサイズ表示記述
+#               初期化関数記述
 
 import os
 os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読み込み画像サイズの上限を変更
@@ -35,6 +37,9 @@ class cherry():
     sugar_content_B = None
     sugar_content_S = None
 
+    def __init__(self, serial_num):
+        self.get_data(serial_num)
+
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
     def get_data(self, serial_num):
@@ -57,7 +62,16 @@ class cherry():
 
         self.open_picture(self.file_name)
 
-    # サクランボデータの表示(コンソール)
+    # 単一の画像ファイルを読み込み,変数pictureに保存
+    def open_picture(self, file_name):
+        self.picture_T = cv2.imread("{}{}_TOP.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_B = cv2.imread("{}{}_BUTTOM.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_L = cv2.imread("{}{}_LEFT.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_L = cv2.rotate(self.picture_L, cv2.ROTATE_90_CLOCKWISE)
+        self.picture_R = cv2.imread("{}{}_RIGHT.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_R = cv2.rotate(self.picture_R, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+        # サクランボデータの表示(コンソール)
     def print_data(self):
         print("------------------------------------------------------------")
         print("シリアル番号 : {}".format(self.num))
@@ -71,26 +85,26 @@ class cherry():
         print("糖度上　　　 : {}".format(self.sugar_content_S))
         print("------------------------------------------------------------")
 
-    # 単一の画像ファイルを読み込み,変数pictureに保存
-    def open_picture(self, file_name):
-        self.picture_T = cv2.imread("{}{}_TOP.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_B = cv2.imread("{}{}_BUTTOM.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_L = cv2.imread("{}{}_LEFT.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_L = cv2.rotate(self.picture_L, cv2.ROTATE_90_CLOCKWISE)
-        self.picture_R = cv2.imread("{}{}_RIGHT.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_R = cv2.rotate(self.picture_R, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+
+# 画像表示用関数
+# リサイズして表示
+def print_picture(window_name, picture):
+        
+        magnification = 0.125
+        img = cv2.resize(picture, dsize=None, fx=magnification, fy=magnification)
+        cv2.imshow(window_name, img)
+        # cv2.waitKey(0)
 
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    cherry_01 = cherry()
+    cherry_01 = cherry(1)
 
-    cherry_01.get_data(1)
     cherry_01.print_data()
+    print_picture("cherry_01_T", cherry_01.picture_T)
+    print_picture("cherry_01_B", cherry_01.picture_B)
+    print_picture("cherry_01_L", cherry_01.picture_L)
+    print_picture("cherry_01_R", cherry_01.picture_R)
 
-    cv2.imshow("cherry_01_T", cherry_01.picture_T)
-    cv2.imshow("cherry_01_B", cherry_01.picture_B)
-    cv2.imshow("cherry_01_L", cherry_01.picture_L)
-    cv2.imshow("cherry_01_R", cherry_01.picture_R)
     cv2.waitKey(0)
-    cv2.destroyAllWindows()
