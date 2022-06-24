@@ -7,11 +7,13 @@
 #               サクランボデータ,画像読み込み処理記述(エクセルデータ使用)
 #               リサイズ表示記述
 #               初期化関数記述
+#               画像結合処理記述
 
 import os
 os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読み込み画像サイズの上限を変更
 import cv2
 import openpyxl
+import numpy as np
 
 class cherry():
 
@@ -25,6 +27,7 @@ class cherry():
     picture_B = None
     picture_L = None
     picture_R = None
+    picture_combine = None
 
     # Excelシート内のデータ
     num = None
@@ -37,8 +40,12 @@ class cherry():
     sugar_content_B = None
     sugar_content_S = None
 
+    # オブジェクト初期化関数
+    # オブジェクト生成時に実行
     def __init__(self, serial_num):
         self.get_data(serial_num)
+        pictures = [self.picture_T, self.picture_B, self.picture_L, self.picture_R]
+        self.picture_combine = self.combine(pictures)
 
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
@@ -85,6 +92,25 @@ class cherry():
         print("糖度上　　　 : {}".format(self.sugar_content_S))
         print("------------------------------------------------------------")
 
+    # 4つ並べた画像を生成
+    def combine(self, pictures):
+
+        height, width, channnels = pictures[0].shape[:3]
+        
+        # 余白生成
+        blank_height = int( (height*2 - width) / 2) 
+        blank_width = height
+        blank = np.zeros((blank_height, blank_width, 3))
+        blank = blank.astype('uint8')
+
+        # 画像結合
+        img_left = cv2.vconcat([blank, pictures[2], blank])
+        img_right = cv2.vconcat([blank, pictures[3], blank])
+        img_middle = cv2.vconcat([pictures[0], pictures[1]])
+        combine_img = cv2.hconcat([img_left, img_middle, img_right])
+
+        return combine_img
+
 
 
 # 画像表示用関数
@@ -102,9 +128,7 @@ if __name__ == "__main__":
     cherry_01 = cherry(1)
 
     cherry_01.print_data()
-    print_picture("cherry_01_T", cherry_01.picture_T)
-    print_picture("cherry_01_B", cherry_01.picture_B)
-    print_picture("cherry_01_L", cherry_01.picture_L)
-    print_picture("cherry_01_R", cherry_01.picture_R)
+
+    print_picture("all", cherry_01.picture_combine)
 
     cv2.waitKey(0)
