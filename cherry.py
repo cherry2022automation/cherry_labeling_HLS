@@ -3,12 +3,14 @@
 
 # T19JM042 長谷季樹
 
-# 2022/06/24    画像読み込み処理記述 → 確認
-#               サクランボデータ,画像読み込み処理記述(エクセルデータ使用)
-#               リサイズ表示記述
-#               初期化関数記述
-#               画像結合処理記述
+# 2022/06/24    画像読み込み処理追加
+#               サクランボデータ,画像読み込み処理追加(エクセルデータ使用)
+#               リサイズ表示追加
+#               初期化関数追加
+#               画像結合処理追加
+# 2022/06/28    マスク処理(赤)追加
 
+from json import detect_encoding
 import os
 os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読み込み画像サイズの上限を変更
 import cv2
@@ -22,12 +24,23 @@ class cherry():
     cherry_data_sheet_name = "all numerical data"
     cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
 
-    # サクランボデータ
+    # サクランボ画像
     picture_T = None
     picture_B = None
     picture_L = None
     picture_R = None
     picture_combine = None
+
+    # マスク, マスク画像
+    mask_T = None
+    mask_B = None
+    mask_L = None
+    mask_R = None
+    masked_img_T = None
+    masked_img_B = None
+    masked_img_L = None
+    masked_img_R = None
+    masked_img_combine = None
 
     # Excelシート内のデータ
     num = None
@@ -40,12 +53,61 @@ class cherry():
     sugar_content_B = None
     sugar_content_S = None
 
+    # マスク処理パラメータ
+    h_min_1 = 0
+    h_max_1 = 15
+    h_min_2 = 150
+    h_max_2 = 179
+    s_min = 70
+    s_max = 255
+    v_min = 0
+    v_max = 255
+    mask_color = [255, 255, 0]
+
+
     # オブジェクト初期化関数
     # オブジェクト生成時に実行
     def __init__(self, serial_num):
         self.get_data(serial_num)
         pictures = [self.picture_T, self.picture_B, self.picture_L, self.picture_R]
         self.picture_combine = self.combine(pictures)
+
+    # 赤色マスク処理
+    def mask_red(self):
+        
+        # マスク処理
+        self.mask_T, self.masked_img_T = self.detect_red_color(self.picture_T)
+        self.mask_B, self.masked_img_B = self.detect_red_color(self.picture_B)
+        self.mask_L, self.masked_img_L = self.detect_red_color(self.picture_L)
+        self.mask_R, self.masked_img_R = self.detect_red_color(self.picture_R)
+
+        # マスク画像を結合
+        pictures = [self.masked_img_T, self.masked_img_B, self.masked_img_L, self.masked_img_R]
+        self.masked_img_combine = self.combine(pictures)
+
+    # 赤色の検出
+    def detect_red_color(self, img):
+        # HSV色空間に変換
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+        # 赤色のHSVの値域1
+        hsv_min = np.array([self.h_min_1, self.s_min, self.v_min])
+        hsv_max = np.array([self.h_max_1, self.s_max, self.v_max])
+        mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
+    
+        # 赤色のHSVの値域2
+        hsv_min = np.array([self.h_min_2, self.s_min, self.v_min])
+        hsv_max = np.array([self.h_max_2, self.s_max, self.v_max])
+        mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
+    
+        # 赤色領域のマスク（255：赤色、0：赤色以外）
+        mask = mask1 + mask2
+    
+        # マスキング処理
+        masked_img = cv2.bitwise_and(img, img, mask=mask)
+        masked_img[mask==0] = self.mask_color
+    
+        return mask, masked_img
 
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
@@ -125,10 +187,18 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    cherry_01 = cherry(1)
+    for i in range(1, 10):
 
-    cherry_01.print_data()
+        cherry_01 = cherry(i)
 
-    print_picture("all", cherry_01.picture_combine)
+        # データ表示
+        cherry_01.print_data()
 
-    cv2.waitKey(0)
+        # 元画像表示
+        print_picture("all", cherry_01.picture_combine)
+
+        # マスク画像
+        cherry_01.mask_red()
+        print_picture("red", cherry_01.masked_img_combine)
+
+        cv2.waitKey(0)
