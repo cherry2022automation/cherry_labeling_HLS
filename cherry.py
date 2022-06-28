@@ -9,6 +9,7 @@
 #               初期化関数追加
 #               画像結合処理追加
 # 2022/06/28    マスク処理(赤)追加
+#               モノクロ生成処理追加
 
 from json import detect_encoding
 import os
@@ -16,6 +17,7 @@ os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読�
 import cv2
 import openpyxl
 import numpy as np
+import copy
 
 class cherry():
 
@@ -31,7 +33,7 @@ class cherry():
     picture_R = None
     picture_combine = None
 
-    # マスク, マスク画像
+    # マスク, マスク画像, マスク後モノクロ画像
     mask_T = None
     mask_B = None
     mask_L = None
@@ -41,6 +43,11 @@ class cherry():
     masked_img_L = None
     masked_img_R = None
     masked_img_combine = None
+    monochrome_img_T = None
+    monochrome_img_B = None
+    monochrome_img_L = None
+    monochrome_img_R = None
+    monochrome_img_combine = None
 
     # Excelシート内のデータ
     num = None
@@ -72,18 +79,41 @@ class cherry():
         pictures = [self.picture_T, self.picture_B, self.picture_L, self.picture_R]
         self.picture_combine = self.combine(pictures)
 
+    # ラベリング処理(未実装)
+    def labelling(self, img):
+        
+        img = self.monochrome_img_T
+        # グレースケールに変換する。
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # 2値化する
+        ret, bin_img = cv2.threshold(gray, 0, 255, cv2.THRESH_TRIANGLE)
+        # カーネルを作成する。
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        # オープニング処理
+        bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_OPEN, kernel, iterations=3)
+        # クロージング処理
+        bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_CLOSE, kernel, iterations=3)
+        # 連結成分のラベリングを行う。
+        retval, labels, stats, centroids = cv2.connectedComponentsWithStats(bin_img)
+
+        return stats
+
     # 赤色マスク処理
     def mask_red(self):
         
         # マスク処理
-        self.mask_T, self.masked_img_T = self.detect_red_color(self.picture_T)
-        self.mask_B, self.masked_img_B = self.detect_red_color(self.picture_B)
-        self.mask_L, self.masked_img_L = self.detect_red_color(self.picture_L)
-        self.mask_R, self.masked_img_R = self.detect_red_color(self.picture_R)
+        self.mask_T, self.masked_img_T , self.monochrome_img_T = self.detect_red_color(self.picture_T)
+        self.mask_B, self.masked_img_B , self.monochrome_img_B = self.detect_red_color(self.picture_B)
+        self.mask_L, self.masked_img_L , self.monochrome_img_L = self.detect_red_color(self.picture_L)
+        self.mask_R, self.masked_img_R , self.monochrome_img_R = self.detect_red_color(self.picture_R)
 
         # マスク画像を結合
         pictures = [self.masked_img_T, self.masked_img_B, self.masked_img_L, self.masked_img_R]
         self.masked_img_combine = self.combine(pictures)
+
+        # モノクロ画像結合
+        pictures = [self.monochrome_img_T, self.monochrome_img_B, self.monochrome_img_L, self.monochrome_img_R]
+        self.monochrome_img_combine = self.combine(pictures)
 
     # 赤色の検出
     def detect_red_color(self, img):
@@ -103,11 +133,16 @@ class cherry():
         # 赤色領域のマスク（255：赤色、0：赤色以外）
         mask = mask1 + mask2
     
-        # マスキング処理
+        # マスキング処理 (確認用)
         masked_img = cv2.bitwise_and(img, img, mask=mask)
         masked_img[mask==0] = self.mask_color
+        
+        # モノクロ化 (処理用)
+        monochrome_img = copy.copy(masked_img)
+        monochrome_img[mask==0] = [0,0,0]
+        monochrome_img[mask!=0] = [255,255,255]
     
-        return mask, masked_img
+        return mask, masked_img, monochrome_img
 
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
@@ -200,5 +235,6 @@ if __name__ == "__main__":
         # マスク画像
         cherry_01.mask_red()
         print_picture("red", cherry_01.masked_img_combine)
+        print_picture("monochrome", cherry_01.monochrome_img_combine)
 
         cv2.waitKey(0)
