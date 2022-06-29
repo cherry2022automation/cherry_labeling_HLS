@@ -55,9 +55,8 @@ class picture():
     # さくらんぼ検出
     def cherry_detection(self):
         stats = self.labelling(self.monochrome_img)
-        # self.label_img = labels
-        self.detection_img = copy.copy(self.original)
         self.get_status(stats)
+        self.detection_img = copy.copy(self.original)
         self.detection_img = cv2.rectangle(self.detection_img, (self.x, self.y), (self.x+self.width, self.y+self.height), (255,255,0), thickness=10)
 
     # ラベリング結果取得

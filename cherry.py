@@ -13,6 +13,7 @@
 # 2022/06/29    pictureオブジェクト追加
 #               没画像判定追加
 #               さくらんぼ検出処理追加
+#               画像結合をオプション化
 
 from json import detect_encoding
 import os
@@ -46,6 +47,12 @@ class cherry():
     monochrome_img_combine = None
     detection_img_combine = None
 
+    # 画像結合有効/無効
+    original_combine_en = True
+    masked_img_combine_en = True
+    monochrome_img_combine_en = True
+    detection_img_combine_en = True
+
     # Excelシート内のデータ
     num = None
     file_name = None
@@ -68,8 +75,10 @@ class cherry():
         self.pictures = {"T":self.picture_T, "B":self.picture_B, "L":self.picture_L, "R":self.picture_R}
 
         self.get_data(serial_num)
-        pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
-        self.original_combine = self.combine(pictures)
+
+        if self.original_combine_en == True:
+            pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
+            self.original_combine = self.combine(pictures)
 
     # サクランボ検出
     def cherry_detection(self):
@@ -79,8 +88,9 @@ class cherry():
         for dir in self.pictures:
             self.pictures[dir].cherry_detection()
 
-        pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
-        self.detection_img_combine = self.combine(pictures)
+        if self.detection_img_combine_en == True:
+            pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
+            self.detection_img_combine = self.combine(pictures)
 
     # マスク処理 +結合画像生成
     def mask_red(self):
@@ -89,12 +99,14 @@ class cherry():
             self.pictures[dir].mask_red()
 
         # マスク画像を結合
-        pictures = [self.picture_T.masked_img, self.picture_B.masked_img, self.picture_L.masked_img, self.picture_R.masked_img]
-        self.masked_img_combine = self.combine(pictures)
+        if self.masked_img_combine_en == True:
+            pictures = [self.picture_T.masked_img, self.picture_B.masked_img, self.picture_L.masked_img, self.picture_R.masked_img]
+            self.masked_img_combine = self.combine(pictures)
 
         # モノクロ画像結合
-        pictures = [self.picture_T.monochrome_img, self.picture_B.monochrome_img, self.picture_L.monochrome_img, self.picture_R.monochrome_img]
-        self.monochrome_img_combine = self.combine(pictures)
+        if self.monochrome_img_combine_en == True:
+            pictures = [self.picture_T.monochrome_img, self.picture_B.monochrome_img, self.picture_L.monochrome_img, self.picture_R.monochrome_img]
+            self.monochrome_img_combine = self.combine(pictures)
 
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
@@ -207,7 +219,6 @@ if __name__ == "__main__":
         cherry_01.cherry_detection()
         print_picture("red", cherry_01.masked_img_combine)
         print_picture("monochrome", cherry_01.monochrome_img_combine)
-        # print_picture("label", cherry_01.label_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
 
         cv2.waitKey(0)
