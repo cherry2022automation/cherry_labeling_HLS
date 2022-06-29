@@ -5,6 +5,7 @@
 
 # 2022/06/29    作成
 #               マスク処理追加 (cherry.pyから移動)
+#               さくらんぼ検出処理追加
 
 import cv2
 import numpy as np
@@ -12,12 +13,23 @@ import copy
 
 class picture():
 
+    # 画像データ
     original = None
     masked_img = None
     monochrome_img = None
+    detection_img = None
+    label_img = None
 
+    # マスク情報
     mask = None
 
+    # サクランボ検出時のラベリング結果
+    x = None
+    y = None
+    width = None
+    height = None
+    area = None
+    diameter = None
 
     # マスク処理パラメータ
     h_min_1 = 0
@@ -26,9 +38,13 @@ class picture():
     h_max_2 = 179
     s_min = 70
     s_max = 255
-    v_min = 0
+    v_min = 10
     v_max = 255
     mask_color = [255, 255, 0]
+
+    # ラベリング時サイズフィルタ
+    area_filter_min = 1000000
+    area_filter_max = 3000000
 
     # 赤色マスク処理
     def mask_red(self):
@@ -36,10 +52,38 @@ class picture():
         # マスク処理
         self.mask, self.masked_img , self.monochrome_img = self.detect_red_color(self.original)
 
+    # さくらんぼ検出
+    def cherry_detection(self):
+        stats = self.labelling(self.monochrome_img)
+        # self.label_img = labels
+        self.detection_img = copy.copy(self.original)
+        self.get_status(stats)
+        self.detection_img = cv2.rectangle(self.detection_img, (self.x, self.y), (self.x+self.width, self.y+self.height), (255,255,0), thickness=10)
+
+    # ラベリング結果取得
+    def get_status(self, stats):
+
+        for stat in stats:
+            area = stat[cv2.CC_STAT_AREA]
+            if self.area_filter_min <= area and area <= self.area_filter_max:
+                self.x = stat[cv2.CC_STAT_LEFT]
+                self.y = stat[cv2.CC_STAT_TOP]
+                self.width = stat[cv2.CC_STAT_WIDTH]
+                self.height = stat[cv2.CC_STAT_HEIGHT]
+                self.area = stat[cv2.CC_STAT_AREA]
+                self.diameter = (self.width + self.height) / 2
+
+    def print_status(self):
+        print("x        :{}".format(self.x))
+        print("y        :{}".format(self.y))
+        print("width    :{}".format(self.width))
+        print("height   :{}".format(self.height))
+        print("area     :{}".format(self.area))
+        print("diameter :{}".format(self.diameter))
+
     # ラベリング処理(未実装)
     def labelling(self, img):
         
-        img = self.monochrome_img
         # グレースケールに変換する。
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # 2値化する

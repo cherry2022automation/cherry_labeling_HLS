@@ -10,6 +10,9 @@
 #               画像結合処理追加
 # 2022/06/28    マスク処理(赤)追加
 #               モノクロ生成処理追加
+# 2022/06/29    pictureオブジェクト追加
+#               没画像判定追加
+#               さくらんぼ検出処理追加
 
 from json import detect_encoding
 import os
@@ -27,6 +30,9 @@ class cherry():
     cherry_data_sheet_name = "all numerical data"
     cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
 
+    # 有効/無効
+    enable = False
+
     # サクランボ画像オブジェクト
     picture_T = None
     picture_B = None
@@ -35,9 +41,10 @@ class cherry():
     pictures = None
 
     # 結合画像
-    picture_combine = None
+    original_combine = None
     masked_img_combine = None
     monochrome_img_combine = None
+    detection_img_combine = None
 
     # Excelシート内のデータ
     num = None
@@ -62,7 +69,18 @@ class cherry():
 
         self.get_data(serial_num)
         pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
-        self.picture_combine = self.combine(pictures)
+        self.original_combine = self.combine(pictures)
+
+    # サクランボ検出
+    def cherry_detection(self):
+
+        self.mask_red()
+
+        for dir in self.pictures:
+            self.pictures[dir].cherry_detection()
+
+        pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
+        self.detection_img_combine = self.combine(pictures)
 
     # マスク処理 +結合画像生成
     def mask_red(self):
@@ -88,7 +106,7 @@ class cherry():
         cherry_data_file = openpyxl.load_workbook(self.cherry_data_pass)
         sheet = cherry_data_file[self.cherry_data_sheet_name]
 
-        self.num = int(sheet["A" + line].value)
+        self.num = sheet["A" + line].value
         self.file_name = sheet["B" + line].value
         self.variety = sheet["C" + line].value
         self.grade = sheet["D" + line].value
@@ -98,7 +116,23 @@ class cherry():
         self.sugar_content_B = sheet["H" + line].value
         self.sugar_content_S = sheet["I" + line].value
 
+        # 数値に変換
+        try:
+            self.num = int(self.num)
+            self.weight = float(self.weight)
+            self.polar_diameter = float(self.polar_diameter)
+            self.equatorial_diameter = float(self.equatorial_diameter)
+            self.sugar_content_B = float(self.sugar_content_B)
+            self.sugar_content_S = float(self.sugar_content_S)
+        except:
+            pass
+
+        # 画像読み込み
         self.open_picture(self.file_name)
+
+        # 撮影成功した画像かを判定
+        if self.weight != None:
+            self.enable = True
 
     # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
     def open_picture(self, file_name):
@@ -116,6 +150,7 @@ class cherry():
         print("------------------------------------------------------------")
         print("シリアル番号 : {}".format(self.num))
         print("ファイル名　 : {}".format(self.file_name))
+        print("有効/無効　　: {}".format(self.enable))
         print("品種　　　　 : {}".format(self.variety))
         print("等級　　　　 : {}".format(self.grade))
         print("重量　　　　 : {} [g]".format(self.weight))
@@ -158,7 +193,7 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in range(1, 3):
+    for i in range(1, 20):
 
         cherry_01 = cherry(i)
 
@@ -166,11 +201,13 @@ if __name__ == "__main__":
         cherry_01.print_data()
 
         # 元画像表示
-        print_picture("all", cherry_01.picture_combine)
+        print_picture("all", cherry_01.original_combine)
 
         # マスク画像
-        cherry_01.mask_red()
+        cherry_01.cherry_detection()
         print_picture("red", cherry_01.masked_img_combine)
         print_picture("monochrome", cherry_01.monochrome_img_combine)
+        # print_picture("label", cherry_01.label_img_combine)
+        print_picture("detection", cherry_01.detection_img_combine)
 
         cv2.waitKey(0)
