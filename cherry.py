@@ -18,6 +18,7 @@ import cv2
 import openpyxl
 import numpy as np
 import copy
+import picture
 
 class cherry():
 
@@ -26,27 +27,16 @@ class cherry():
     cherry_data_sheet_name = "all numerical data"
     cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
 
-    # サクランボ画像
+    # サクランボ画像オブジェクト
     picture_T = None
     picture_B = None
     picture_L = None
     picture_R = None
-    picture_combine = None
+    pictures = None
 
-    # マスク, マスク画像, マスク後モノクロ画像
-    mask_T = None
-    mask_B = None
-    mask_L = None
-    mask_R = None
-    masked_img_T = None
-    masked_img_B = None
-    masked_img_L = None
-    masked_img_R = None
+    # 結合画像
+    picture_combine = None
     masked_img_combine = None
-    monochrome_img_T = None
-    monochrome_img_B = None
-    monochrome_img_L = None
-    monochrome_img_R = None
     monochrome_img_combine = None
 
     # Excelシート内のデータ
@@ -60,89 +50,33 @@ class cherry():
     sugar_content_B = None
     sugar_content_S = None
 
-    # マスク処理パラメータ
-    h_min_1 = 0
-    h_max_1 = 15
-    h_min_2 = 150
-    h_max_2 = 179
-    s_min = 70
-    s_max = 255
-    v_min = 0
-    v_max = 255
-    mask_color = [255, 255, 0]
-
-
     # オブジェクト初期化関数
     # オブジェクト生成時に実行
     def __init__(self, serial_num):
+
+        self.picture_T = picture.picture()
+        self.picture_B = picture.picture()
+        self.picture_L = picture.picture()
+        self.picture_R = picture.picture()
+        self.pictures = {"T":self.picture_T, "B":self.picture_B, "L":self.picture_L, "R":self.picture_R}
+
         self.get_data(serial_num)
-        pictures = [self.picture_T, self.picture_B, self.picture_L, self.picture_R]
+        pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
         self.picture_combine = self.combine(pictures)
 
-    # ラベリング処理(未実装)
-    def labelling(self, img):
-        
-        img = self.monochrome_img_T
-        # グレースケールに変換する。
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # 2値化する
-        ret, bin_img = cv2.threshold(gray, 0, 255, cv2.THRESH_TRIANGLE)
-        # カーネルを作成する。
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        # オープニング処理
-        bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_OPEN, kernel, iterations=3)
-        # クロージング処理
-        bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_CLOSE, kernel, iterations=3)
-        # 連結成分のラベリングを行う。
-        retval, labels, stats, centroids = cv2.connectedComponentsWithStats(bin_img)
-
-        return stats
-
-    # 赤色マスク処理
+    # マスク処理 +結合画像生成
     def mask_red(self):
-        
-        # マスク処理
-        self.mask_T, self.masked_img_T , self.monochrome_img_T = self.detect_red_color(self.picture_T)
-        self.mask_B, self.masked_img_B , self.monochrome_img_B = self.detect_red_color(self.picture_B)
-        self.mask_L, self.masked_img_L , self.monochrome_img_L = self.detect_red_color(self.picture_L)
-        self.mask_R, self.masked_img_R , self.monochrome_img_R = self.detect_red_color(self.picture_R)
+
+        for dir in self.pictures:
+            self.pictures[dir].mask_red()
 
         # マスク画像を結合
-        pictures = [self.masked_img_T, self.masked_img_B, self.masked_img_L, self.masked_img_R]
+        pictures = [self.picture_T.masked_img, self.picture_B.masked_img, self.picture_L.masked_img, self.picture_R.masked_img]
         self.masked_img_combine = self.combine(pictures)
 
         # モノクロ画像結合
-        pictures = [self.monochrome_img_T, self.monochrome_img_B, self.monochrome_img_L, self.monochrome_img_R]
+        pictures = [self.picture_T.monochrome_img, self.picture_B.monochrome_img, self.picture_L.monochrome_img, self.picture_R.monochrome_img]
         self.monochrome_img_combine = self.combine(pictures)
-
-    # 赤色の検出
-    def detect_red_color(self, img):
-        # HSV色空間に変換
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    
-        # 赤色のHSVの値域1
-        hsv_min = np.array([self.h_min_1, self.s_min, self.v_min])
-        hsv_max = np.array([self.h_max_1, self.s_max, self.v_max])
-        mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
-    
-        # 赤色のHSVの値域2
-        hsv_min = np.array([self.h_min_2, self.s_min, self.v_min])
-        hsv_max = np.array([self.h_max_2, self.s_max, self.v_max])
-        mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
-    
-        # 赤色領域のマスク（255：赤色、0：赤色以外）
-        mask = mask1 + mask2
-    
-        # マスキング処理 (確認用)
-        masked_img = cv2.bitwise_and(img, img, mask=mask)
-        masked_img[mask==0] = self.mask_color
-        
-        # モノクロ化 (処理用)
-        monochrome_img = copy.copy(masked_img)
-        monochrome_img[mask==0] = [0,0,0]
-        monochrome_img[mask!=0] = [255,255,255]
-    
-        return mask, masked_img, monochrome_img
 
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
@@ -166,16 +100,18 @@ class cherry():
 
         self.open_picture(self.file_name)
 
-    # 単一の画像ファイルを読み込み,変数pictureに保存
+    # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
     def open_picture(self, file_name):
-        self.picture_T = cv2.imread("{}{}_TOP.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_B = cv2.imread("{}{}_BUTTOM.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_L = cv2.imread("{}{}_LEFT.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_L = cv2.rotate(self.picture_L, cv2.ROTATE_90_CLOCKWISE)
-        self.picture_R = cv2.imread("{}{}_RIGHT.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_R = cv2.rotate(self.picture_R, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        # サクランボデータの表示(コンソール)
+        self.picture_T.original = cv2.imread("{}{}_TOP.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_B.original = cv2.imread("{}{}_BUTTOM.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_L.original = cv2.imread("{}{}_LEFT.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_R.original = cv2.imread("{}{}_RIGHT.bmp".format(self.cherry_picture_directory, file_name))
+
+        self.picture_L.original = cv2.rotate(self.picture_L.original, cv2.ROTATE_90_CLOCKWISE)
+        self.picture_R.original = cv2.rotate(self.picture_R.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+    # サクランボデータの表示(コンソール)
     def print_data(self):
         print("------------------------------------------------------------")
         print("シリアル番号 : {}".format(self.num))
@@ -222,7 +158,7 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in range(1, 10):
+    for i in range(1, 3):
 
         cherry_01 = cherry(i)
 
