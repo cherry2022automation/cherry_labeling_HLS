@@ -13,6 +13,10 @@
 import cherry
 import picture
 import cv2
+import csv
+
+output_csv_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\detection_01\\cherry_size.csv"
+output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\detection_01\\"
 
 width_max = 0
 height_max = 0
@@ -20,50 +24,55 @@ width_max_num = None
 height_max_num = None
 detection_miss = []
 
-# 画像表示用関数
-# リサイズして表示
-def print_picture(window_name, picture):
+# リサイズ
+def resize(picture):
         
         magnification = 0.125
         img = cv2.resize(picture, dsize=None, fx=magnification, fy=magnification)
-        cv2.imshow(window_name, img)
-        # cv2.waitKey(0)
+        return img
 
-for i in range(1, 812):
+with open(output_csv_pass, 'w') as f:
+    writer = csv.writer(f)
 
-    cherry_01 = cherry.cherry(i)
+    for i in range(1, 813):
 
-    if cherry_01.enable == False:
-        continue
+        cherry_01 = cherry.cherry(i)
 
-    cherry_01.original_combine_en = False
-    cherry_01.masked_img_combine_en = False
-    cherry_01.monochrome_img_combine_en = False
-    # cherry_01.detection_img_combine_en = False
+        if cherry_01.enable == False:
+            continue
 
-    # さくらんぼ検出
-    try:
-        cherry_01.cherry_detection()
-    except:
-        detection_miss.append(i)
-        continue
+        cherry_01.original_combine_en = False
+        cherry_01.masked_img_combine_en = False
+        cherry_01.monochrome_img_combine_en = False
+        # cherry_01.detection_img_combine_en = False
 
-    for dir in cherry_01.pictures:
+        # さくらんぼ検出
+        try:
+            cherry_01.cherry_detection()
+            cv2.imwrite(output_dir + cherry_01.file_name + "_detection.bmp", resize(cherry_01.detection_img_combine))
+        except:
+            detection_miss.append(i)
+            continue
 
-        # 幅, 高さ取得
-        width = cherry_01.pictures[dir].width
-        height = cherry_01.pictures[dir].height
+        for dir in cherry_01.pictures:
 
-        # 表示
-        print("{} {} : width={} height={}".format(cherry_01.num, dir, width, height))
+            # 幅, 高さ取得
+            width = cherry_01.pictures[dir].width
+            height = cherry_01.pictures[dir].height
 
-        # 最大値更新
-        if width_max < width:
-            width_max = width
-            width_max_num = i
-        if height_max < height:
-            height_max = height
-            height_max_num = i
+            output_line = [cherry_01.num, dir, width, height]
+            writer.writerow(output_line)
+            
+            # 表示
+            print("{} {} : width={} height={}".format(cherry_01.num, dir, width, height))
+
+            # 最大値更新
+            if width_max < width:
+                width_max = width
+                width_max_num = i
+            if height_max < height:
+                height_max = height
+                height_max_num = i
 
 # 最大値更新
 print("width_max={}, height_max={}".format(width_max, height_max))

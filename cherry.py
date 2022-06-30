@@ -46,12 +46,14 @@ class cherry():
     masked_img_combine = None
     monochrome_img_combine = None
     detection_img_combine = None
+    trimming_img_combine = None
 
     # 画像結合有効/無効
     original_combine_en = True
     masked_img_combine_en = True
     monochrome_img_combine_en = True
     detection_img_combine_en = True
+    trimming_img_combine_en = True
 
     # Excelシート内のデータ
     num = None
@@ -72,13 +74,21 @@ class cherry():
         self.picture_B = picture.picture()
         self.picture_L = picture.picture()
         self.picture_R = picture.picture()
-        self.pictures = {"T":self.picture_T, "B":self.picture_B, "L":self.picture_L, "R":self.picture_R}
+        self.pictures = {"TOP":self.picture_T, "BUTTOM":self.picture_B, "LEFT":self.picture_L, "RIGHT":self.picture_R}
 
         self.get_data(serial_num)
 
         if self.original_combine_en == True:
             pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
             self.original_combine = self.combine(pictures)
+
+    def trimming(self, size):
+        for dir in self.pictures:
+            self.pictures[dir].trimming(size)
+
+        if self.trimming_img_combine_en == True:
+            pictures = [self.picture_T.trim_img, self.picture_B.trim_img, self.picture_L.trim_img, self.picture_R.trim_img]
+            self.trimming_img_combine = self.combine(pictures)
 
     # サクランボ検出
     def cherry_detection(self):
@@ -205,7 +215,7 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in range(1, 20):
+    for i in range(783, 790):
 
         cherry_01 = cherry(i)
 
@@ -220,5 +230,8 @@ if __name__ == "__main__":
         print_picture("red", cherry_01.masked_img_combine)
         print_picture("monochrome", cherry_01.monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
+
+        cherry_01.trimming(2000)
+        print_picture("trimming", cherry_01.trimming_img_combine)
 
         cv2.waitKey(0)

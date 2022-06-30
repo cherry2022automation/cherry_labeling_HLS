@@ -19,6 +19,7 @@ class picture():
     monochrome_img = None
     detection_img = None
     label_img = None
+    trim_img = None
 
     # マスク情報
     mask = None
@@ -34,9 +35,9 @@ class picture():
     # マスク処理パラメータ
     h_min_1 = 0
     h_max_1 = 15
-    h_min_2 = 150
+    h_min_2 = 160
     h_max_2 = 179
-    s_min = 70
+    s_min = 80
     s_max = 255
     v_min = 10
     v_max = 255
@@ -45,6 +46,14 @@ class picture():
     # ラベリング時サイズフィルタ
     area_filter_min = 1000000
     area_filter_max = 3000000
+
+    def trimming(self, size):
+        trm_x_min = int( self.x + self.width/2 - size/2 )
+        trm_x_max = trm_x_min + size
+        trm_y_min = int( self.y + self.height/2 - size/2 )
+        trm_y_max = trm_y_min + size
+
+        self.trim_img = self.original[trm_y_min:trm_y_max, trm_x_min:trm_x_max]
 
     # 赤色マスク処理
     def mask_red(self):
