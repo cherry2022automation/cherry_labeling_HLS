@@ -6,9 +6,10 @@
 # 2022/06/29    作成
 
 # 2022/06/29 結果(1h10m)
-#   width_max=2982, height_max=2538
-#   width_max_num=783, height_max_num=298
+#   width_max=2289, height_max=2422
+#   width_max_num=786, height_max_num=566
 #   detecthion miss = 3
+#   [44, 527, 564]
 
 import cherry
 import picture
@@ -49,7 +50,7 @@ with open(output_csv_pass, 'w') as f:
         # さくらんぼ検出
         try:
             cherry_01.cherry_detection()
-            cv2.imwrite(output_dir + cherry_01.file_name + "_detection.bmp", resize(cherry_01.detection_img_combine))
+            cv2.imwrite(output_dir + cherry_01.file_name + "_detection.jpeg", resize(cherry_01.detection_img_combine))
         except:
             detection_miss.append(i)
             continue

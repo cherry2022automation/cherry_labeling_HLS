@@ -29,6 +29,7 @@ class cherry():
     # サクランボデータのファイルパス
     cherry_data_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\cherry_data.xlsx"
     cherry_data_sheet_name = "all numerical data"
+    # cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\trimming_01\\"
     cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
 
     # 有効/無効
@@ -159,10 +160,10 @@ class cherry():
     # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
     def open_picture(self, file_name):
 
-        self.picture_T.original = cv2.imread("{}{}_TOP.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_B.original = cv2.imread("{}{}_BUTTOM.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_L.original = cv2.imread("{}{}_LEFT.bmp".format(self.cherry_picture_directory, file_name))
-        self.picture_R.original = cv2.imread("{}{}_RIGHT.bmp".format(self.cherry_picture_directory, file_name))
+        self.picture_T.original = cv2.imread("{}{}_TOP.jpeg".format(self.cherry_picture_directory, file_name))
+        self.picture_B.original = cv2.imread("{}{}_BUTTOM.jpeg".format(self.cherry_picture_directory, file_name))
+        self.picture_L.original = cv2.imread("{}{}_LEFT.jpeg".format(self.cherry_picture_directory, file_name))
+        self.picture_R.original = cv2.imread("{}{}_RIGHT.jpeg".format(self.cherry_picture_directory, file_name))
 
         self.picture_L.original = cv2.rotate(self.picture_L.original, cv2.ROTATE_90_CLOCKWISE)
         self.picture_R.original = cv2.rotate(self.picture_R.original, cv2.ROTATE_90_COUNTERCLOCKWISE)

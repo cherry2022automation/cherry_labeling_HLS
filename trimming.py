@@ -22,7 +22,7 @@ if __name__ == "__main__":
             cherry_01.trimming(trm_size)
             
             for dir in cherry_01.pictures:
-                cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".bmp", cherry_01.pictures[dir].trim_img)
+                cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".jpeg", cherry_01.pictures[dir].trim_img)
 
             print("{} done".format(i))
         except:
