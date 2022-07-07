@@ -232,7 +232,7 @@ if __name__ == "__main__":
         print_picture("monochrome", cherry_01.monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
 
-        cherry_01.trimming(2000)
+        cherry_01.trimming(2500)
         print_picture("trimming", cherry_01.trimming_img_combine)
 
         cv2.waitKey(0)

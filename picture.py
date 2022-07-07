@@ -27,6 +27,8 @@ class picture():
     # サクランボ検出時のラベリング結果
     x = None
     y = None
+    g_x = None
+    g_y = None
     width = None
     height = None
     area = None
@@ -48,10 +50,14 @@ class picture():
     area_filter_max = 3000000
 
     def trimming(self, size):
-        trm_x_min = int( self.x + self.width/2 - size/2 )
-        trm_x_max = trm_x_min + size
-        trm_y_min = int( self.y + self.height/2 - size/2 )
-        trm_y_max = trm_y_min + size
+        # trm_x_min = int( self.x + self.width/2 - size/2 )
+        # trm_x_max = trm_x_min + size
+        # trm_y_min = int( self.y + self.height/2 - size/2 )
+        # trm_y_max = trm_y_min + size
+        trm_x_min = int( self.g_x - (size/2) )
+        trm_x_max = int( self.g_x + (size/2) )
+        trm_y_min = int( self.g_y - (size/2) )
+        trm_y_max = int( self.g_y + (size/2) )
 
         self.trim_img = self.original[trm_y_min:trm_y_max, trm_x_min:trm_x_max]
 
@@ -63,27 +69,33 @@ class picture():
 
     # さくらんぼ検出
     def cherry_detection(self):
-        stats = self.labelling(self.monochrome_img)
-        self.get_status(stats)
+        labelling_result = self.labelling(self.monochrome_img)
+        self.get_status(labelling_result)
         self.detection_img = copy.copy(self.original)
         self.detection_img = cv2.rectangle(self.detection_img, (self.x, self.y), (self.x+self.width, self.y+self.height), (255,255,0), thickness=10)
 
     # ラベリング結果取得
-    def get_status(self, stats):
+    def get_status(self, labelling_result):
 
-        for stat in stats:
-            area = stat[cv2.CC_STAT_AREA]
+        for result in labelling_result:
+            area = result[0][cv2.CC_STAT_AREA]
             if self.area_filter_min <= area and area <= self.area_filter_max:
-                self.x = stat[cv2.CC_STAT_LEFT]
-                self.y = stat[cv2.CC_STAT_TOP]
-                self.width = stat[cv2.CC_STAT_WIDTH]
-                self.height = stat[cv2.CC_STAT_HEIGHT]
-                self.area = stat[cv2.CC_STAT_AREA]
+                self.x = result[0][cv2.CC_STAT_LEFT]
+                self.y = result[0][cv2.CC_STAT_TOP]
+                self.width = result[0][cv2.CC_STAT_WIDTH]
+                self.height = result[0][cv2.CC_STAT_HEIGHT]
+                self.area = result[0][cv2.CC_STAT_AREA]
                 self.diameter = (self.width + self.height) / 2
+
+                self.g_x, self.g_y = result[1]
+                self.g_x = int(self.g_x)
+                self.g_y = int(self.g_y)
 
     def print_status(self):
         print("x        :{}".format(self.x))
         print("y        :{}".format(self.y))
+        print("g_x      :{}".format(self.g_x))
+        print("g_y      :{}".format(self.g_y))
         print("width    :{}".format(self.width))
         print("height   :{}".format(self.height))
         print("area     :{}".format(self.area))
@@ -105,7 +117,9 @@ class picture():
         # 連結成分のラベリングを行う。
         retval, labels, stats, centroids = cv2.connectedComponentsWithStats(bin_img)
 
-        return stats
+        labelling_result = zip(stats, centroids)
+
+        return labelling_result
 
     # 赤色の検出
     def detect_red_color(self, img):
