@@ -19,6 +19,8 @@ import csv
 output_csv_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\detection_01\\cherry_size.csv"
 output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\detection_01\\"
 
+cherry_num = 1136
+
 width_max = 0
 height_max = 0
 width_max_num = None
@@ -32,10 +34,11 @@ def resize(picture):
         img = cv2.resize(picture, dsize=None, fx=magnification, fy=magnification)
         return img
 
+
 with open(output_csv_pass, 'w') as f:
     writer = csv.writer(f)
 
-    for i in range(1, 813):
+    for i in range(1, cherry_num+1):
 
         cherry_01 = cherry.cherry(i)
 

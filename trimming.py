@@ -1,10 +1,10 @@
 import cv2
 import cherry
 
-output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\trimming_01\\"
+output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\trimming_2500\\"
 
 trm_size = 2500
-picture_num = 812
+picture_num = 1135
 
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
@@ -14,6 +14,8 @@ if __name__ == "__main__":
         try:
 
             cherry_01 = cherry.cherry(i)
+            if cherry_01.enable == False:
+                continue
 
             # さくらんぼ検出
             cherry_01.cherry_detection()

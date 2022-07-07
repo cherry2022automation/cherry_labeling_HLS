@@ -27,10 +27,11 @@ import picture
 class cherry():
 
     # サクランボデータのファイルパス
-    cherry_data_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\cherry_data.xlsx"
-    cherry_data_sheet_name = "all numerical data"
-    # cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\trimming_01\\"
     cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
+    cherry_data_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\cherry_data.xlsx"
+
+    cherry_data_sheet_name = "all numerical data"
+    
 
     # 有効/無効
     enable = False
@@ -151,7 +152,10 @@ class cherry():
             pass
 
         # 画像読み込み
-        self.open_picture(self.file_name)
+        try:
+            self.open_picture(self.file_name)
+        except:
+            self.enable = False
 
         # 撮影成功した画像かを判定
         if self.weight != None:
@@ -234,5 +238,5 @@ if __name__ == "__main__":
 
         cherry_01.trimming(2500)
         print_picture("trimming", cherry_01.trimming_img_combine)
-
+        
         cv2.waitKey(0)
