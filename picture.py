@@ -36,14 +36,11 @@ class picture():
     diameter = None
 
     # マスク処理パラメータ
-    h_min_1 = 0
-    h_max_1 = 15
-    h_min_2 = 160
-    h_max_2 = 179
-    s_min = 80
-    s_max = 255
-    v_min = 10
-    v_max = 255
+    hsv_1_min = [0, 80, 10]
+    hsv_1_max = [15, 255, 255]
+    hsv_2_min = [160, 80, 10]
+    hsv_2_max = [179, 255, 255]
+
     mask_color = [255, 255, 0]
 
     # ラベリング時サイズフィルタ
@@ -54,10 +51,6 @@ class picture():
         self.resize_img = cv2.resize(self.original, dsize=None, fx=magnification, fy=magnification)
 
     def trimming(self, size):
-        # trm_x_min = int( self.x + self.width/2 - size/2 )
-        # trm_x_max = trm_x_min + size
-        # trm_y_min = int( self.y + self.height/2 - size/2 )
-        # trm_y_max = trm_y_min + size
         trm_x_min = int( self.g_x - (size/2) )
         trm_x_max = int( self.g_x + (size/2) )
         trm_y_min = int( self.g_y - (size/2) )
@@ -73,6 +66,7 @@ class picture():
 
     # さくらんぼ検出
     def cherry_detection(self):
+
         labelling_result = self.labelling(self.monochrome_img)
         self.get_status(labelling_result)
         self.detection_img = copy.copy(self.original)
@@ -105,7 +99,7 @@ class picture():
         print("area     :{}".format(self.area))
         print("diameter :{}".format(self.diameter))
 
-    # ラベリング処理(未実装)
+    # ラベリング処理
     def labelling(self, img):
         
         # グレースケールに変換する。
@@ -131,13 +125,13 @@ class picture():
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
         # 赤色のHSVの値域1
-        hsv_min = np.array([self.h_min_1, self.s_min, self.v_min])
-        hsv_max = np.array([self.h_max_1, self.s_max, self.v_max])
+        hsv_min = np.array(self.hsv_1_min)
+        hsv_max = np.array(self.hsv_1_max)
         mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
     
         # 赤色のHSVの値域2
-        hsv_min = np.array([self.h_min_2, self.s_min, self.v_min])
-        hsv_max = np.array([self.h_max_2, self.s_max, self.v_max])
+        hsv_min = np.array(self.hsv_2_min)
+        hsv_max = np.array(self.hsv_2_max)
         mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
     
         # 赤色領域のマスク（255：赤色、0：赤色以外）

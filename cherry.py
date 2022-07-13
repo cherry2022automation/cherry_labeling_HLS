@@ -70,7 +70,7 @@ class cherry():
 
     # オブジェクト初期化関数
     # オブジェクト生成時に実行
-    def __init__(self, serial_num, dir=None):
+    def __init__(self, serial_num, picture_dir=None, rotate=True):
 
         self.picture_T = picture.picture()
         self.picture_B = picture.picture()
@@ -78,10 +78,10 @@ class cherry():
         self.picture_R = picture.picture()
         self.pictures = {"TOP":self.picture_T, "BUTTOM":self.picture_B, "LEFT":self.picture_L, "RIGHT":self.picture_R}
 
-        if dir!=None:
-            self.cherry_picture_directory = dir
+        if picture_dir!=None:
+            self.cherry_picture_directory = picture_dir
 
-        self.get_data(serial_num)
+        self.get_data(serial_num, rotate)
 
         if self.original_combine_en == True:
             pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
@@ -96,11 +96,29 @@ class cherry():
             self.trimming_img_combine = self.combine(pictures)
 
     # サクランボ検出
-    def cherry_detection(self):
+    def cherry_detection(self, area_filter_min=None, area_filter_max=None, hsv_1_min=None, hsv_1_max=None, hsv_2_min=None, hsv_2_max=None):
 
         self.mask_red()
 
         for dir in self.pictures:
+
+            if area_filter_max != None:
+                self.pictures[dir].area_filter_max = area_filter_max
+            if area_filter_min != None:
+                self.pictures[dir].area_filter_min = area_filter_min
+
+            if hsv_1_min != None:
+                self.pictures[dir].hsv_1_min = hsv_1_min
+
+            if hsv_1_max != None:
+                self.pictures[dir].hsv_1_max = hsv_1_max
+
+            if hsv_2_min != None:
+                self.pictures[dir].hsv_2_min = hsv_2_min
+
+            if hsv_2_max != None:
+                self.pictures[dir].hsv_2_max = hsv_2_max
+
             self.pictures[dir].cherry_detection()
 
         if self.detection_img_combine_en == True:
@@ -125,7 +143,7 @@ class cherry():
 
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
-    def get_data(self, serial_num):
+    def get_data(self, serial_num, rotate):
 
         line = str(serial_num + 1)
 
@@ -156,24 +174,26 @@ class cherry():
 
         # 画像読み込み
         try:
-            self.open_picture(self.file_name)
+            self.open_picture(self.file_name, rotate)
         except:
             self.enable = False
+            print("画像読み込みに失敗しました")
 
         # 撮影成功した画像かを判定
         if self.weight != None:
             self.enable = True
 
     # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
-    def open_picture(self, file_name):
+    def open_picture(self, file_name, rotate):
 
         self.picture_T.original = cv2.imread("{}{}_TOP.jpeg".format(self.cherry_picture_directory, file_name))
         self.picture_B.original = cv2.imread("{}{}_BUTTOM.jpeg".format(self.cherry_picture_directory, file_name))
         self.picture_L.original = cv2.imread("{}{}_LEFT.jpeg".format(self.cherry_picture_directory, file_name))
         self.picture_R.original = cv2.imread("{}{}_RIGHT.jpeg".format(self.cherry_picture_directory, file_name))
 
-        self.picture_L.original = cv2.rotate(self.picture_L.original, cv2.ROTATE_90_CLOCKWISE)
-        self.picture_R.original = cv2.rotate(self.picture_R.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        if rotate==True:
+            self.picture_L.original = cv2.rotate(self.picture_L.original, cv2.ROTATE_90_CLOCKWISE)
+            self.picture_R.original = cv2.rotate(self.picture_R.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     # サクランボデータの表示(コンソール)
     def print_data(self):
@@ -193,17 +213,28 @@ class cherry():
     # 4つ並べた画像を生成
     def combine(self, pictures):
 
-        height, width, channnels = pictures[0].shape[:3]
+        height_T, width_T, channnels = pictures[0].shape[:3]
+        height_B, width_B, channnels = pictures[1].shape[:3]
+        height_L, width_L, channnels = pictures[2].shape[:3]
+        height_R, width_R, channnels = pictures[3].shape[:3]
         
         # 余白生成
-        blank_height = int( (height*2 - width) / 2) 
-        blank_width = height
-        blank = np.zeros((blank_height, blank_width, 3))
-        blank = blank.astype('uint8')
+        blank_TL_height = int( (height_T + height_B - height_L) / 2 )
+        blank_TR_height = int( (height_T + height_B - height_R) / 2 )
+        blank_L_width = int(width_L)
+        blank_R_width = int(width_R)
+
+        blank_BL_height = (height_T + height_B) - (blank_TL_height + height_L)
+        blank_BR_height = (height_T + height_B) - (blank_TR_height + height_R)
+            
+        blank_TL = np.zeros((blank_TL_height, blank_L_width, 3)).astype('uint8')
+        blank_TR = np.zeros((blank_TR_height, blank_R_width, 3)).astype('uint8')
+        blank_BL = np.zeros((blank_BL_height, blank_L_width, 3)).astype('uint8')
+        blank_BR = np.zeros((blank_BR_height, blank_R_width, 3)).astype('uint8')
 
         # 画像結合
-        img_left = cv2.vconcat([blank, pictures[2], blank])
-        img_right = cv2.vconcat([blank, pictures[3], blank])
+        img_left = cv2.vconcat([blank_TL, pictures[2], blank_BL])
+        img_right = cv2.vconcat([blank_TR, pictures[3], blank_BR])
         img_middle = cv2.vconcat([pictures[0], pictures[1]])
         combine_img = cv2.hconcat([img_left, img_middle, img_right])
 
