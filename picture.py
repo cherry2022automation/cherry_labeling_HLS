@@ -20,6 +20,7 @@ class picture():
     detection_img = None
     label_img = None
     trim_img = None
+    resize_img = None
 
     # マスク情報
     mask = None
@@ -48,6 +49,9 @@ class picture():
     # ラベリング時サイズフィルタ
     area_filter_min = 1000000
     area_filter_max = 3000000
+
+    def resize(self, magnification):
+        self.resize_img = cv2.resize(self.original, dsize=None, fx=magnification, fy=magnification)
 
     def trimming(self, size):
         # trm_x_min = int( self.x + self.width/2 - size/2 )

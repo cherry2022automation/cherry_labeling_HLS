@@ -70,13 +70,16 @@ class cherry():
 
     # オブジェクト初期化関数
     # オブジェクト生成時に実行
-    def __init__(self, serial_num):
+    def __init__(self, serial_num, dir=None):
 
         self.picture_T = picture.picture()
         self.picture_B = picture.picture()
         self.picture_L = picture.picture()
         self.picture_R = picture.picture()
         self.pictures = {"TOP":self.picture_T, "BUTTOM":self.picture_B, "LEFT":self.picture_L, "RIGHT":self.picture_R}
+
+        if dir!=None:
+            self.cherry_picture_directory = dir
 
         self.get_data(serial_num)
 
