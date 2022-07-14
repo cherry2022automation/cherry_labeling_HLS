@@ -45,7 +45,7 @@ for num in open_serial_num:
         cherry_01 = cherry.cherry(num, picture_dir=open_dir, rotate=False)
         
         for dir in cherry_01.pictures:
-            cherry_01.pictures[dir].resize(1/5)
+            cherry_01.pictures[dir].resize(1/4)
             cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".jpeg", cherry_01.pictures[dir].resize_img)
         
         print(str(num) + "done")

@@ -13,7 +13,9 @@ hsv_2_min = [160, 80, 30]
 hsv_2_max = [179, 255, 255]
 
 area_filter_min = 10000
-area_filter_max = 100000
+area_filter_max = 200000
+
+trim_size = 600
 
 
 # 画像表示用関数
@@ -31,7 +33,6 @@ if __name__ == "__main__":
     for i in range(1, 31):
 
         cherry_01 = cherry.cherry(i, picture_dir=pic_dir)
-        # cherry_01.trimming_img_combine_en = False
 
         # データ表示
         cherry_01.print_data()
@@ -45,7 +46,7 @@ if __name__ == "__main__":
         print_picture("monochrome", cherry_01.monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
 
-        cherry_01.trimming(400)
+        cherry_01.trimming(trim_size)
         print_picture("trimming", cherry_01.trimming_img_combine)
         
         cv2.waitKey(0)
