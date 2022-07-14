@@ -26,39 +26,43 @@ def get_serial_nums(files):
     return serial_nums
 
 
-# ディレクトリ内のファイル名を取得
-open_files = os.listdir(open_dir)
-already_files = os.listdir(output_dir)
+def resize():
 
-# ディレクトリ内の画像のシリアル番号リストを取得
-open_serial_num = get_serial_nums(open_files)
-already_serial_num = get_serial_nums(already_files)
+    # ディレクトリ内のファイル名を取得
+    open_files = os.listdir(open_dir)
+    already_files = os.listdir(output_dir)
 
-# 出力先に存在しない画像のみリサイズして保存
-for num in open_serial_num:
+    # ディレクトリ内の画像のシリアル番号リストを取得
+    open_serial_num = get_serial_nums(open_files)
+    already_serial_num = get_serial_nums(already_files)
 
-    if num in already_serial_num:
-        continue
+    # 出力先に存在しない画像のみリサイズして保存
+    for num in open_serial_num:
 
-    try:
+        if num in already_serial_num:
+            continue
 
-        cherry_01 = cherry.cherry(num, picture_dir=open_dir, rotate=False)
+        try:
+
+            cherry_01 = cherry.cherry(num, picture_dir=open_dir, rotate=False)
+            
+            for dir in cherry_01.pictures:
+                cherry_01.pictures[dir].resize(1/4)
+                cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".jpeg", cherry_01.pictures[dir].resize_img)
+            
+            print(str(num) + "done")
         
-        for dir in cherry_01.pictures:
-            cherry_01.pictures[dir].resize(1/4)
-            cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".jpeg", cherry_01.pictures[dir].resize_img)
+        except:
+            failed_num.append(num)
+            print(str(num) + "faild")
+
+
+    print("------------------------------")
+    print("Processing completed")
+    print("")
+    print("failed number")
+    print(failed_num)
+    print("------------------------------")
         
-        print(str(num) + "done")
-    
-    except:
-        failed_num.append(num)
-        print(str(num) + "faild")
-
-
-print("------------------------------")
-print("Processing completed")
-print("")
-print("failed number")
-print(failed_num)
-print("------------------------------")
-    
+if __name__ == "__main__":
+    resize()
