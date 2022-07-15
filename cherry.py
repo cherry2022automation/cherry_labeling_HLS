@@ -83,9 +83,11 @@ class cherry():
 
         self.get_data(serial_num, rotate)
 
-        if self.original_combine_en == True:
-            pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
-            self.original_combine = self.combine(pictures)
+        if self.enable == True:
+
+            if self.original_combine_en == True:
+                pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
+                self.original_combine = self.combine(pictures)
 
     def trimming(self, size):
         for dir in self.pictures:
@@ -172,16 +174,16 @@ class cherry():
         except:
             pass
 
-        # 画像読み込み
-        try:
-            self.open_picture(self.file_name, rotate)
-        except:
-            self.enable = False
-            print("画像読み込みに失敗しました")
-
         # 撮影成功した画像かを判定
         if self.weight != None:
             self.enable = True
+
+            # 画像読み込み
+            try:
+                self.open_picture(self.file_name, rotate)
+            except:
+                self.enable = False
+                print("画像読み込みに失敗しました")
 
     # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
     def open_picture(self, file_name, rotate):
