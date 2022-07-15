@@ -51,12 +51,30 @@ class picture():
         self.resize_img = cv2.resize(self.original, dsize=None, fx=magnification, fy=magnification)
 
     def trimming(self, size):
-        trm_x_min = int( self.g_x - (size/2) )
-        trm_x_max = int( self.g_x + (size/2) )
-        trm_y_min = int( self.g_y - (size/2) )
-        trm_y_max = int( self.g_y + (size/2) )
 
-        self.trim_img = self.original[trm_y_min:trm_y_max, trm_x_min:trm_x_max]
+        width = int(size/2)
+        add_outer_frame_img = self.insert_outer_frame(self.original, width)
+
+        trm_x_min = int( self.g_x - (size/2) + width)
+        trm_x_max = int( self.g_x + (size/2) + width)
+        trm_y_min = int( self.g_y - (size/2) + width)
+        trm_y_max = int( self.g_y + (size/2) + width)
+
+        self.trim_img = add_outer_frame_img[trm_y_min:trm_y_max, trm_x_min:trm_x_max]
+
+    def insert_outer_frame(self, img, width):
+    
+        #枠追加処理(上下)
+        bk1=np.zeros((width,img.shape[1],3),np.uint8)
+        array=np.insert(img, 0, bk1, axis=0)
+        array=np.insert(array, array.shape[0], bk1, axis=0)
+
+        #枠追加処理(左右)
+        bk2=np.zeros((array.shape[0],width,3),np.uint8)
+        array=np.insert(array, [0], bk2, axis=1)
+        array=np.insert(array, [array.shape[1]], bk2, axis=1)
+
+        return array
 
     # 赤色マスク処理
     def mask_red(self):
