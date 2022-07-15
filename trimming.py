@@ -43,6 +43,8 @@ def get_serial_nums(files):
 
 def trim():
 
+    print("========== trim start ==========")
+
     # ディレクトリ内のファイル名を取得
     open_files = os.listdir(open_dir)
     already_files = os.listdir(output_dir)
@@ -59,6 +61,8 @@ def trim():
 
         try:
 
+            print("\rtry : {}".format(num), end='')
+
             cherry_01 = cherry.cherry(num, picture_dir=open_dir)
 
             if cherry_01.enable == False:
@@ -73,18 +77,19 @@ def trim():
             for dir in cherry_01.pictures:
                 cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".jpeg", cherry_01.pictures[dir].trim_img)
             
-            print(str(num) + "done")
+            print("\r" + str(num) + "done")
 
         except:
             failed_num.append(num)
-            print(str(num) + "failed")
+            print("\r" + str(num) + "failed")
 
-    print("------------------------------")
-    print("Processing completed")
+    print("trim completed")
     print("")
     print("failed number")
     print(failed_num)
-    print("------------------------------")
+    print("")
+
+    return failed_num
         
 if __name__ == '__main__':
 
