@@ -2,14 +2,20 @@ import cv2
 import os
 import cherry
 
+# 変更を行う変数 ========================================================================
+
 # リサイズ元ディレクトリ
 open_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
 
 # 出力先ディレクトリ
 output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025\\"
 
-failed_num = []
+# 拡大率
+magnification = 0.25
 
+# =====================================================================================
+
+failed_num = []
 
 # ディレクトリ内に存在する画像のシリアル番号をリスト化
 def get_serial_nums(files):
@@ -27,6 +33,8 @@ def get_serial_nums(files):
 
 
 def resize():
+
+    print("========== resize start ==========")
 
     # ディレクトリ内のファイル名を取得
     open_files = os.listdir(open_dir)
@@ -47,7 +55,7 @@ def resize():
             cherry_01 = cherry.cherry(num, picture_dir=open_dir, rotate=False)
             
             for dir in cherry_01.pictures:
-                cherry_01.pictures[dir].resize(1/4)
+                cherry_01.pictures[dir].resize(magnification)
                 cv2.imwrite(output_dir + cherry_01.file_name + "_" + dir + ".jpeg", cherry_01.pictures[dir].resize_img)
             
             print(str(num) + "done")
@@ -56,13 +64,13 @@ def resize():
             failed_num.append(num)
             print(str(num) + "faild")
 
-
-    print("------------------------------")
-    print("Processing completed")
+    print("resize completed")
     print("")
     print("failed number")
     print(failed_num)
-    print("------------------------------")
+    print("")
+
+    return failed_num
         
 if __name__ == "__main__":
     resize()
