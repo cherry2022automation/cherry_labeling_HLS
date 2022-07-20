@@ -19,12 +19,12 @@ trimming.output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025
 
 trimming.trm_size = 600
 
-trimming.hsv_1_min = [0, 80, 30]
-trimming.hsv_1_max = [15, 255, 255]
-trimming.hsv_2_min = [160, 80, 30]
+trimming.hsv_1_min = [0, 80, 10]
+trimming.hsv_1_max = [30, 255, 255]
+trimming.hsv_2_min = [160, 80, 10]
 trimming.hsv_2_max = [179, 255, 255]
 
-trimming.area_filter_min = 10000
+trimming.area_filter_min = 20000
 trimming.area_filter_max = 250000
 
 
