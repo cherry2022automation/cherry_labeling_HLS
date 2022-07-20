@@ -17,6 +17,7 @@
 
 from json import detect_encoding
 import os
+import turtle
 os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読み込み画像サイズの上限を変更
 import cv2
 import openpyxl
@@ -56,6 +57,7 @@ class cherry():
     monochrome_img_combine_en = True
     detection_img_combine_en = True
     trimming_img_combine_en = True
+    cherry_masked_img_combine_en = True
 
     # Excelシート内のデータ
     num = None
@@ -128,6 +130,10 @@ class cherry():
             pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
             self.detection_img_combine = self.combine(pictures)
 
+        if self.cherry_masked_img_combine_en == True:
+            pictures = [self.picture_T.cherry_masked_img, self.picture_B.cherry_masked_img, self.picture_L.cherry_masked_img, self.picture_R.cherry_masked_img]
+            self.cherry_masked_img_combine = self.combine(pictures)
+
     # マスク処理 +結合画像生成
     def mask_red(self):
 
@@ -136,12 +142,12 @@ class cherry():
 
         # マスク画像を結合
         if self.masked_img_combine_en == True:
-            pictures = [self.picture_T.masked_img, self.picture_B.masked_img, self.picture_L.masked_img, self.picture_R.masked_img]
+            pictures = [self.picture_T.hsv_masked_img, self.picture_B.hsv_masked_img, self.picture_L.hsv_masked_img, self.picture_R.hsv_masked_img]
             self.masked_img_combine = self.combine(pictures)
 
         # モノクロ画像結合
         if self.monochrome_img_combine_en == True:
-            pictures = [self.picture_T.monochrome_img, self.picture_B.monochrome_img, self.picture_L.monochrome_img, self.picture_R.monochrome_img]
+            pictures = [self.picture_T.hsv_monochrome_img, self.picture_B.hsv_monochrome_img, self.picture_L.hsv_monochrome_img, self.picture_R.hsv_monochrome_img]
             self.monochrome_img_combine = self.combine(pictures)
 
     # サクランボの写真とデータを読み込み
@@ -216,6 +222,7 @@ class cherry():
     # 4つ並べた画像を生成
     def combine(self, pictures):
 
+        # 画像サイズ取得
         height_T, width_T, channnels = pictures[0].shape[:3]
         height_B, width_B, channnels = pictures[1].shape[:3]
         height_L, width_L, channnels = pictures[2].shape[:3]

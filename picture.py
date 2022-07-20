@@ -7,6 +7,7 @@
 #               マスク処理追加 (cherry.pyから移動)
 #               さくらんぼ検出処理追加
 
+from pstats import Stats
 import cv2
 import numpy as np
 import copy
@@ -14,16 +15,18 @@ import copy
 class picture():
 
     # 画像データ
-    original = None
-    masked_img = None
-    monochrome_img = None
-    detection_img = None
-    label_img = None
-    trim_img = None
-    resize_img = None
+    original = None             # 元画像
+    hsv_masked_img = None       # hsv閾値で背景を水色にした画像
+    hsv_monochrome_img = None   # hsv閾値で該当領域を白, その他を黒にした画像 
+    detection_img = None        # 元画像にサクランボの外接矩形を描画した画像
+    trim_img = None             # トリミング後の画像
+    resize_img = None           # リサイズ後の画像
+    labels = None               # ラベリング結果
+    cherry_masked_img = None    # さくらんぼ以外の背景を水色にした画像
 
     # マスク情報
-    mask = None
+    hsv_mask = None             # hsv閾値でのマスク結果
+    cherry_mask = None      # サクランボ領域以外のマスク
 
     # サクランボ検出時のラベリング結果
     x = None
@@ -76,46 +79,13 @@ class picture():
 
         return array
 
-    # 赤色マスク処理
-    def mask_red(self):
-        
-        # マスク処理
-        self.mask, self.masked_img , self.monochrome_img = self.detect_red_color(self.original)
-
     # さくらんぼ検出
     def cherry_detection(self):
 
-        labelling_result = self.labelling(self.monochrome_img)
-        self.get_status(labelling_result)
+        stats, centroids = self.labelling(self.hsv_monochrome_img)
+        self.get_status(stats, centroids)
         self.detection_img = copy.copy(self.original)
         self.detection_img = cv2.rectangle(self.detection_img, (self.x, self.y), (self.x+self.width, self.y+self.height), (255,255,0), thickness=10)
-
-    # ラベリング結果取得
-    def get_status(self, labelling_result):
-
-        for result in labelling_result:
-            area = result[0][cv2.CC_STAT_AREA]
-            if self.area_filter_min <= area and area <= self.area_filter_max:
-                self.x = result[0][cv2.CC_STAT_LEFT]
-                self.y = result[0][cv2.CC_STAT_TOP]
-                self.width = result[0][cv2.CC_STAT_WIDTH]
-                self.height = result[0][cv2.CC_STAT_HEIGHT]
-                self.area = result[0][cv2.CC_STAT_AREA]
-                self.diameter = (self.width + self.height) / 2
-
-                self.g_x, self.g_y = result[1]
-                self.g_x = int(self.g_x)
-                self.g_y = int(self.g_y)
-
-    def print_status(self):
-        print("x        :{}".format(self.x))
-        print("y        :{}".format(self.y))
-        print("g_x      :{}".format(self.g_x))
-        print("g_y      :{}".format(self.g_y))
-        print("width    :{}".format(self.width))
-        print("height   :{}".format(self.height))
-        print("area     :{}".format(self.area))
-        print("diameter :{}".format(self.diameter))
 
     # ラベリング処理
     def labelling(self, img):
@@ -133,9 +103,54 @@ class picture():
         # 連結成分のラベリングを行う。
         retval, labels, stats, centroids = cv2.connectedComponentsWithStats(bin_img)
 
-        labelling_result = zip(stats, centroids)
+        self.labels = labels
 
-        return labelling_result
+        return stats, centroids
+
+    # ラベリング結果取得
+    def get_status(self, stats, centroids):
+
+        for i in range(len(stats)):
+
+            # 領域サイズでサクランボを識別
+            area = stats[i][cv2.CC_STAT_AREA]
+            if self.area_filter_min <= area and area <= self.area_filter_max:
+
+                # 該当データを取得
+                self.x = stats[i][cv2.CC_STAT_LEFT]
+                self.y = stats[i][cv2.CC_STAT_TOP]
+                self.width = stats[i][cv2.CC_STAT_WIDTH]
+                self.height = stats[i][cv2.CC_STAT_HEIGHT]
+                self.area = stats[i][cv2.CC_STAT_AREA]
+                self.diameter = (self.width + self.height) / 2
+
+                # 重心取得
+                self.g_x, self.g_y = centroids[i]
+                self.g_x = int(self.g_x)
+                self.g_y = int(self.g_y)
+
+                # サクランボ領域のみのマスクを取得
+                self.cherry_mask = np.zeros(self.original.shape[:2], np.uint8)
+                self.cherry_mask[self.labels==i] = 255
+
+                self.cherry_masked_img = copy.copy(self.original)
+                self.cherry_masked_img[self.labels!=i] = self.mask_color
+
+    def print_status(self):
+        print("x        :{}".format(self.x))
+        print("y        :{}".format(self.y))
+        print("g_x      :{}".format(self.g_x))
+        print("g_y      :{}".format(self.g_y))
+        print("width    :{}".format(self.width))
+        print("height   :{}".format(self.height))
+        print("area     :{}".format(self.area))
+        print("diameter :{}".format(self.diameter))
+
+    # 赤色マスク処理
+    def mask_red(self):
+        
+        # マスク処理
+        self.hsv_mask, self.hsv_masked_img , self.hsv_monochrome_img = self.detect_red_color(self.original)
 
     # 赤色の検出
     def detect_red_color(self, img):
