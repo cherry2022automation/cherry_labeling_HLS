@@ -100,8 +100,6 @@ class cherry():
     # サクランボ検出
     def cherry_detection(self, area_filter_min=None, area_filter_max=None, hsv_1_min=None, hsv_1_max=None, hsv_2_min=None, hsv_2_max=None):
 
-        self.mask_red()
-
         for dir in self.pictures:
 
             if area_filter_max != None:
@@ -121,6 +119,9 @@ class cherry():
             if hsv_2_max != None:
                 self.pictures[dir].hsv_2_max = hsv_2_max
 
+        self.mask_red()
+
+        for dir in self.pictures:
             self.pictures[dir].cherry_detection()
 
         if self.detection_img_combine_en == True:
