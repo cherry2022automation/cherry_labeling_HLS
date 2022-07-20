@@ -58,6 +58,7 @@ class cherry():
     detection_img_combine_en = True
     trimming_img_combine_en = True
     cherry_masked_img_combine_en = True
+    cherry_monochrome_img_combine_en = True
 
     # Excelシート内のデータ
     num = None
@@ -133,6 +134,10 @@ class cherry():
         if self.cherry_masked_img_combine_en == True:
             pictures = [self.picture_T.cherry_masked_img, self.picture_B.cherry_masked_img, self.picture_L.cherry_masked_img, self.picture_R.cherry_masked_img]
             self.cherry_masked_img_combine = self.combine(pictures)
+
+        if self.cherry_monochrome_img_combine_en == True:
+            pictures = [self.picture_T.cherry_monochrome_img, self.picture_B.cherry_monochrome_img, self.picture_L.cherry_monochrome_img, self.picture_R.cherry_monochrome_img]
+            self.cherry_monochrome_img_combine = self.combine(pictures)
 
     # マスク処理 +結合画像生成
     def mask_red(self):

@@ -23,6 +23,7 @@ class picture():
     resize_img = None           # リサイズ後の画像
     labels = None               # ラベリング結果
     cherry_masked_img = None    # さくらんぼ以外の背景を水色にした画像
+    cherry_monochrome_img = None
 
     # マスク情報
     hsv_mask = None             # hsv閾値でのマスク結果
@@ -135,6 +136,10 @@ class picture():
 
                 self.cherry_masked_img = copy.copy(self.original)
                 self.cherry_masked_img[self.labels!=i] = self.mask_color
+
+                self.cherry_monochrome_img = copy.copy(self.cherry_masked_img)
+                self.cherry_monochrome_img[self.cherry_mask==0] = [0,0,0]
+                self.cherry_monochrome_img[self.cherry_mask!=0] = [255,255,255]
 
     def print_status(self):
         print("x        :{}".format(self.x))
