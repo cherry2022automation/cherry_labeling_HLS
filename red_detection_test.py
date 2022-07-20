@@ -7,13 +7,13 @@ from picture import picture
 pic_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025\\"
 
 
-hsv_1_min = [0, 80, 30]
-hsv_1_max = [15, 255, 255]
-hsv_2_min = [160, 80, 30]
+hsv_1_min = [0, 80, 10]
+hsv_1_max = [30, 255, 255]
+hsv_2_min = [160, 80, 10]
 hsv_2_max = [179, 255, 255]
 
-area_filter_min = 10000
-area_filter_max = 200000
+area_filter_min = 20000
+area_filter_max = 250000
 
 trim_size = 600
 
@@ -30,7 +30,7 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in range(1, 31):
+    for i in [923, 924, 952, 1047, 1250, 1296, 1309, 1313, 1317, 1338, 1536, 1585, 1586, 1587, 1597, 1621, 1622, 1624, 1625, 1631, 1633, 1643, 1649, 1651, 1659, 1660, 1662, 1663, 1664, 1668, 1670, 1674]:
 
         cherry_01 = cherry.cherry(i, picture_dir=pic_dir)
 
