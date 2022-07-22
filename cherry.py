@@ -46,19 +46,10 @@ class cherry():
 
     # 結合画像
     original_combine = None
-    masked_img_combine = None
-    monochrome_img_combine = None
+    red_masked_img_combine = None
+    red_monochrome_img_combine = None
     detection_img_combine = None
     trimming_img_combine = None
-
-    # 画像結合有効/無効
-    original_combine_en = True
-    masked_img_combine_en = True
-    monochrome_img_combine_en = True
-    detection_img_combine_en = True
-    trimming_img_combine_en = True
-    cherry_masked_img_combine_en = True
-    cherry_monochrome_img_combine_en = True
 
     # Excelシート内のデータ
     num = None
@@ -86,75 +77,35 @@ class cherry():
 
         self.get_data(serial_num, rotate)
 
-        if self.enable == True:
-
-            if self.original_combine_en == True:
-                pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
-                self.original_combine = self.combine(pictures)
-
     def trimming(self, size):
         for dir in self.pictures:
             self.pictures[dir].trimming(size)
-
-        if self.trimming_img_combine_en == True:
-            pictures = [self.picture_T.trim_img, self.picture_B.trim_img, self.picture_L.trim_img, self.picture_R.trim_img]
-            self.trimming_img_combine = self.combine(pictures)
 
     # サクランボ検出
     def cherry_detection(self, area_filter_min=None, area_filter_max=None, hsv_1_min=None, hsv_1_max=None, hsv_2_min=None, hsv_2_max=None):
 
         for dir in self.pictures:
 
+            # パラメータ更新
             if area_filter_max != None:
                 self.pictures[dir].area_filter_max = area_filter_max
             if area_filter_min != None:
                 self.pictures[dir].area_filter_min = area_filter_min
-
             if hsv_1_min != None:
                 self.pictures[dir].hsv_1_min = hsv_1_min
-
             if hsv_1_max != None:
                 self.pictures[dir].hsv_1_max = hsv_1_max
-
             if hsv_2_min != None:
                 self.pictures[dir].hsv_2_min = hsv_2_min
-
             if hsv_2_max != None:
                 self.pictures[dir].hsv_2_max = hsv_2_max
 
-        self.mask_red()
-
-        for dir in self.pictures:
-            self.pictures[dir].cherry_detection()
-
-        if self.detection_img_combine_en == True:
-            pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
-            self.detection_img_combine = self.combine(pictures)
-
-        if self.cherry_masked_img_combine_en == True:
-            pictures = [self.picture_T.cherry_masked_img, self.picture_B.cherry_masked_img, self.picture_L.cherry_masked_img, self.picture_R.cherry_masked_img]
-            self.cherry_masked_img_combine = self.combine(pictures)
-
-        if self.cherry_monochrome_img_combine_en == True:
-            pictures = [self.picture_T.cherry_monochrome_img, self.picture_B.cherry_monochrome_img, self.picture_L.cherry_monochrome_img, self.picture_R.cherry_monochrome_img]
-            self.cherry_monochrome_img_combine = self.combine(pictures)
-
-    # マスク処理 +結合画像生成
-    def mask_red(self):
-
-        for dir in self.pictures:
+            # 赤色以外をマスク
             self.pictures[dir].mask_red()
 
-        # マスク画像を結合
-        if self.masked_img_combine_en == True:
-            pictures = [self.picture_T.hsv_masked_img, self.picture_B.hsv_masked_img, self.picture_L.hsv_masked_img, self.picture_R.hsv_masked_img]
-            self.masked_img_combine = self.combine(pictures)
-
-        # モノクロ画像結合
-        if self.monochrome_img_combine_en == True:
-            pictures = [self.picture_T.hsv_monochrome_img, self.picture_B.hsv_monochrome_img, self.picture_L.hsv_monochrome_img, self.picture_R.hsv_monochrome_img]
-            self.monochrome_img_combine = self.combine(pictures)
-
+            # さくらんぼ検出
+            self.pictures[dir].cherry_detection()
+        
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
     def get_data(self, serial_num, rotate):
@@ -224,8 +175,38 @@ class cherry():
         print("糖度上　　　 : {}".format(self.sugar_content_S))
         print("------------------------------------------------------------")
 
+    def combine(self, Selection):
+
+        if "original" in Selection:
+            pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
+            self.original_combine = self.combine_4_picture(pictures)
+
+        if "red_monochrome_img" in Selection:
+            pictures = [self.picture_T.red_monochrome_img, self.picture_B.red_monochrome_img, self.picture_L.red_monochrome_img, self.picture_R.red_monochrome_img]
+            self.red_monochrome_img_combine = self.combine_4_picture(pictures)
+
+        if "red_masked_img" in Selection:
+            pictures = [self.picture_T.red_masked_img, self.picture_B.red_masked_img, self.picture_L.red_masked_img, self.picture_R.red_masked_img]
+            self.red_masked_img_combine = self.combine_4_picture(pictures)
+
+        if "detection_img" in Selection:
+            pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
+            self.detection_img_combine = self.combine_4_picture(pictures)
+
+        if "cherry_monochrome_img" in Selection:
+            pictures = [self.picture_T.cherry_monochrome_img, self.picture_B.cherry_monochrome_img, self.picture_L.cherry_monochrome_img, self.picture_R.cherry_monochrome_img]
+            self.cherry_monochrome_img_combine = self.combine_4_picture(pictures)
+
+        if "cherry_masked_img" in Selection:
+            pictures = [self.picture_T.cherry_masked_img, self.picture_B.cherry_masked_img, self.picture_L.cherry_masked_img, self.picture_R.cherry_masked_img]
+            self.cherry_masked_img_combine = self.combine_4_picture(pictures)
+
+        if "trimming_img" in Selection:
+            pictures = [self.picture_T.trim_img, self.picture_B.trim_img, self.picture_L.trim_img, self.picture_R.trim_img]
+            self.trimming_img_combine = self.combine_4_picture(pictures)
+
     # 4つ並べた画像を生成
-    def combine(self, pictures):
+    def combine_4_picture(self, pictures):
 
         # 画像サイズ取得
         height_T, width_T, channnels = pictures[0].shape[:3]
@@ -276,16 +257,18 @@ if __name__ == "__main__":
         # データ表示
         cherry_01.print_data()
 
-        # 元画像表示
+        cherry_01.combine(["original"])
         print_picture("all", cherry_01.original_combine)
 
-        # マスク画像
         cherry_01.cherry_detection()
-        print_picture("red", cherry_01.masked_img_combine)
-        print_picture("monochrome", cherry_01.monochrome_img_combine)
+        cherry_01.combine(["redd_masked_img", "red_monochrome_img", "detection_img"])
+
+        print_picture("red", cherry_01.red_masked_img_combine)
+        print_picture("monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
 
         cherry_01.trimming(2500)
+        cherry_01.combine(["trimming_img"])
         print_picture("trimming", cherry_01.trimming_img_combine)
         
         cv2.waitKey(0)

@@ -16,8 +16,8 @@ class picture():
 
     # 画像データ
     original = None             # 元画像
-    hsv_masked_img = None       # hsv閾値で背景を水色にした画像
-    hsv_monochrome_img = None   # hsv閾値で該当領域を白, その他を黒にした画像 
+    red_masked_img = None       # hsv閾値で背景を水色にした画像
+    red_monochrome_img = None   # hsv閾値で該当領域を白, その他を黒にした画像 
     detection_img = None        # 元画像にサクランボの外接矩形を描画した画像
     trim_img = None             # トリミング後の画像
     resize_img = None           # リサイズ後の画像
@@ -83,7 +83,7 @@ class picture():
     # さくらんぼ検出
     def cherry_detection(self):
 
-        stats, centroids = self.labelling(self.hsv_monochrome_img)
+        stats, centroids = self.labelling(self.red_monochrome_img)
         self.get_status(stats, centroids)
         self.detection_img = copy.copy(self.original)
         self.detection_img = cv2.rectangle(self.detection_img, (self.x, self.y), (self.x+self.width, self.y+self.height), (255,255,0), thickness=10)
@@ -155,7 +155,7 @@ class picture():
     def mask_red(self):
         
         # マスク処理
-        self.hsv_mask, self.hsv_masked_img , self.hsv_monochrome_img = self.detect_red_color(self.original)
+        self.hsv_mask, self.red_masked_img , self.red_monochrome_img = self.detect_red_color(self.original)
 
     # 赤色の検出
     def detect_red_color(self, img):

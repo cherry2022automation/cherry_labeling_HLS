@@ -4,7 +4,7 @@ import cv2
 from picture import picture
 
 
-pic_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025\\"
+pic_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025_trim_600\\"
 
 
 hsv_1_min = [0, 80, 10]
@@ -30,24 +30,27 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in [923, 924, 1536, 1643, 1668]:
+    for i in [1536]:
 
-        cherry_01 = cherry.cherry(i, picture_dir=pic_dir)
+        cherry_01 = cherry.cherry(i, picture_dir=pic_dir, rotate=False)
 
         # データ表示
         cherry_01.print_data()
 
         # 元画像表示
-        print_picture("all", cherry_01.original_combine)
+        cherry_01.combine(["original"])
+        print_picture("original", cherry_01.original_combine)
 
         # マスク画像
         cherry_01.cherry_detection(hsv_1_min=hsv_1_min, hsv_1_max=hsv_1_max, hsv_2_min=hsv_2_min, hsv_2_max=hsv_2_max, area_filter_min=area_filter_min, area_filter_max=area_filter_max)
-        print_picture("hsv masked image", cherry_01.masked_img_combine)
-        print_picture("hsv monochrome", cherry_01.monochrome_img_combine)
+        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img"])
+        print_picture("red masked image", cherry_01.red_masked_img_combine)
+        print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
         print_picture("cherry masked img", cherry_01.cherry_masked_img_combine)
 
         cherry_01.trimming(trim_size)
+        cherry_01.combine("trimming_img")
         print_picture("trimming", cherry_01.trimming_img_combine)
         
         cv2.waitKey(0)
