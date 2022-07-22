@@ -64,18 +64,12 @@ class cherry():
 
     # オブジェクト初期化関数
     # オブジェクト生成時に実行
-    def __init__(self, serial_num, picture_dir=None, rotate=True):
-
-        self.picture_T = picture.picture()
-        self.picture_B = picture.picture()
-        self.picture_L = picture.picture()
-        self.picture_R = picture.picture()
-        self.pictures = {"TOP":self.picture_T, "BUTTOM":self.picture_B, "LEFT":self.picture_L, "RIGHT":self.picture_R}
+    def __init__(self, serial_num, picture_dir=None):
 
         if picture_dir!=None:
             self.cherry_picture_directory = picture_dir
 
-        self.get_data(serial_num, rotate)
+        self.get_data(serial_num)
 
     def trimming(self, size):
         for dir in self.pictures:
@@ -108,7 +102,7 @@ class cherry():
         
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
-    def get_data(self, serial_num, rotate):
+    def get_data(self, serial_num):
 
         line = str(serial_num + 1)
 
@@ -139,26 +133,33 @@ class cherry():
 
         # 撮影成功した画像かを判定
         if self.weight != None:
-            self.enable = True
-
-            # 画像読み込み
-            try:
-                self.open_picture(self.file_name, rotate)
-            except:
-                self.enable = False
-                print("画像読み込みに失敗しました")
+            self.enable = True            
 
     # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
-    def open_picture(self, file_name, rotate):
+    def open_picture(self, rotate=False):
 
-        self.picture_T.original = cv2.imread("{}{}_TOP.jpeg".format(self.cherry_picture_directory, file_name))
-        self.picture_B.original = cv2.imread("{}{}_BUTTOM.jpeg".format(self.cherry_picture_directory, file_name))
-        self.picture_L.original = cv2.imread("{}{}_LEFT.jpeg".format(self.cherry_picture_directory, file_name))
-        self.picture_R.original = cv2.imread("{}{}_RIGHT.jpeg".format(self.cherry_picture_directory, file_name))
+        self.picture_T = picture.picture()
+        self.picture_B = picture.picture()
+        self.picture_L = picture.picture()
+        self.picture_R = picture.picture()
+        self.pictures = {"TOP":self.picture_T, "BUTTOM":self.picture_B, "LEFT":self.picture_L, "RIGHT":self.picture_R}
 
-        if rotate==True:
-            self.picture_L.original = cv2.rotate(self.picture_L.original, cv2.ROTATE_90_CLOCKWISE)
-            self.picture_R.original = cv2.rotate(self.picture_R.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        # 画像読み込み
+        try:
+            
+            file_name = self.file_name
+            self.picture_T.original = cv2.imread("{}{}_TOP.jpeg".format(self.cherry_picture_directory, file_name))
+            self.picture_B.original = cv2.imread("{}{}_BUTTOM.jpeg".format(self.cherry_picture_directory, file_name))
+            self.picture_L.original = cv2.imread("{}{}_LEFT.jpeg".format(self.cherry_picture_directory, file_name))
+            self.picture_R.original = cv2.imread("{}{}_RIGHT.jpeg".format(self.cherry_picture_directory, file_name))
+
+            if rotate==True:
+                self.picture_L.original = cv2.rotate(self.picture_L.original, cv2.ROTATE_90_CLOCKWISE)
+                self.picture_R.original = cv2.rotate(self.picture_R.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+        except:
+            self.enable = False
+            print("画像読み込みに失敗しました")
 
     # サクランボデータの表示(コンソール)
     def print_data(self):
@@ -253,18 +254,19 @@ if __name__ == "__main__":
     for i in range(783, 790):
 
         cherry_01 = cherry(i)
+        cherry_01.open_picture(rotate=True)
 
         # データ表示
         cherry_01.print_data()
 
         cherry_01.combine(["original"])
-        print_picture("all", cherry_01.original_combine)
+        print_picture("original", cherry_01.original_combine)
 
         cherry_01.cherry_detection()
-        cherry_01.combine(["redd_masked_img", "red_monochrome_img", "detection_img"])
+        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img"])
 
-        print_picture("red", cherry_01.red_masked_img_combine)
-        print_picture("monochrome", cherry_01.red_monochrome_img_combine)
+        print_picture("red masked", cherry_01.red_masked_img_combine)
+        print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
 
         cherry_01.trimming(2500)

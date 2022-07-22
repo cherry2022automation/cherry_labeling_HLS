@@ -68,6 +68,8 @@ def trim():
             if cherry_01.enable == False:
                 continue
 
+            cherry_01.open_picture(rotate=True)
+
             # さくらんぼ検出
             cherry_01.cherry_detection(hsv_1_min=hsv_1_min, hsv_1_max=hsv_1_max, hsv_2_min=hsv_2_min, hsv_2_max=hsv_2_max, area_filter_min=area_filter_min, area_filter_max=area_filter_max)
 

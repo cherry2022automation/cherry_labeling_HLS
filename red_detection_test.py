@@ -32,7 +32,8 @@ if __name__ == "__main__":
 
     for i in [1536]:
 
-        cherry_01 = cherry.cherry(i, picture_dir=pic_dir, rotate=False)
+        cherry_01 = cherry.cherry(i, picture_dir=pic_dir)
+        cherry_01.open_picture()
 
         # データ表示
         cherry_01.print_data()

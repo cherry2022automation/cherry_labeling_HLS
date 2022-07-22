@@ -52,7 +52,8 @@ def resize():
 
         try:
 
-            cherry_01 = cherry.cherry(num, picture_dir=open_dir, rotate=False)
+            cherry_01 = cherry.cherry(num, picture_dir=open_dir)
+            cherry_01.open_picture()
             
             for dir in cherry_01.pictures:
                 cherry_01.pictures[dir].resize(magnification)
