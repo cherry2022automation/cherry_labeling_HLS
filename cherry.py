@@ -24,15 +24,13 @@ import openpyxl
 import numpy as np
 import copy
 import picture
+import csv
 
 class cherry():
 
     # サクランボデータのファイルパス
     cherry_picture_directory = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\original\\"
-    cherry_data_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\cherry_data.xlsx"
-
-    cherry_data_sheet_name = "all numerical data"
-    
+    cherry_data_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\cherry_data.csv"
 
     # 有効/無効
     enable = False
@@ -51,7 +49,7 @@ class cherry():
     detection_img_combine = None
     trimming_img_combine = None
 
-    # Excelシート内のデータ
+    # サクランボのデータ
     num = None
     file_name = None
     variety = None
@@ -104,21 +102,38 @@ class cherry():
     # serial_num:サクランボのシリアルナンバー
     def get_data(self, serial_num):
 
-        line = str(serial_num + 1)
+        NUM                 = 0
+        FILE_NAME           = 1
+        VARIETY             = 2
+        GRADE               = 3
+        WEIGHT              = 4
+        POLAR_DIAMETER      = 5
+        EQUATORIAL_DIAMETER = 6
+        SUGAR_CONTENT_B     = 7
+        SUGAR_CONTENT_S     = 8
 
-        # Excelファイル読み込み
-        cherry_data_file = openpyxl.load_workbook(self.cherry_data_pass)
-        sheet = cherry_data_file[self.cherry_data_sheet_name]
+        with open(self.cherry_data_pass, encoding="utf-8") as d:
+            reader = csv.reader(d)
+            data = [row for row in  reader]
 
-        self.num = sheet["A" + line].value
-        self.file_name = sheet["B" + line].value
-        self.variety = sheet["C" + line].value
-        self.grade = sheet["D" + line].value
-        self.weight = sheet["E" + line].value
-        self.polar_diameter = sheet["F" + line].value
-        self.equatorial_diameter = sheet["G" + line].value
-        self.sugar_content_B = sheet["H" + line].value
-        self.sugar_content_S = sheet["I" + line].value
+        line = serial_num
+
+        self.num = data[line][NUM]
+        self.file_name = data[line][FILE_NAME]
+        self.variety = data[line][VARIETY]
+        self.grade = data[line][GRADE]
+        self.weight = data[line][WEIGHT]
+        self.polar_diameter = data[line][POLAR_DIAMETER]
+        self.equatorial_diameter = data[line][EQUATORIAL_DIAMETER]
+        self.sugar_content_B = data[line][SUGAR_CONTENT_B]
+        self.sugar_content_S = data[line][SUGAR_CONTENT_S]
+
+        # 撮影成功した画像かを判定
+        if self.weight != "":
+            self.enable = True
+        else:
+            self.enable = False
+            return
 
         # 数値に変換
         try:
@@ -130,10 +145,6 @@ class cherry():
             self.sugar_content_S = float(self.sugar_content_S)
         except:
             pass
-
-        # 撮影成功した画像かを判定
-        if self.weight != None:
-            self.enable = True            
 
     # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
     def open_picture(self, rotate=False):
