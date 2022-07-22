@@ -30,9 +30,12 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in [1536]:
+    for i in range(1, 1500):
 
         cherry_01 = cherry.cherry(i, picture_dir=pic_dir)
+        if cherry_01.enable == False:
+            continue
+
         cherry_01.open_picture()
 
         # データ表示

@@ -3,28 +3,14 @@
 
 # T19JM042 長谷季樹
 
-# 2022/06/24    画像読み込み処理追加
-#               サクランボデータ,画像読み込み処理追加(エクセルデータ使用)
-#               リサイズ表示追加
-#               初期化関数追加
-#               画像結合処理追加
-# 2022/06/28    マスク処理(赤)追加
-#               モノクロ生成処理追加
-# 2022/06/29    pictureオブジェクト追加
-#               没画像判定追加
-#               さくらんぼ検出処理追加
-#               画像結合をオプション化
-
-from json import detect_encoding
 import os
-import turtle
 os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読み込み画像サイズの上限を変更
 import cv2
-import openpyxl
 import numpy as np
-import copy
-import picture
 import csv
+
+import picture
+
 
 class cherry():
 
@@ -112,12 +98,13 @@ class cherry():
         SUGAR_CONTENT_B     = 7
         SUGAR_CONTENT_S     = 8
 
+        # csvファイルからデータを取得
         with open(self.cherry_data_pass, encoding="utf-8") as d:
             reader = csv.reader(d)
             data = [row for row in  reader]
 
+        # 取得データから該当データを格納
         line = serial_num
-
         self.num = data[line][NUM]
         self.file_name = data[line][FILE_NAME]
         self.variety = data[line][VARIETY]
@@ -146,7 +133,7 @@ class cherry():
         except:
             pass
 
-    # 単一の画像ファイルを読み込み,pictureオブジェクトに保存
+    # 画像ファイルを読み込み,pictureオブジェクトに保存
     def open_picture(self, rotate=False):
 
         self.picture_T = picture.picture()
@@ -187,6 +174,7 @@ class cherry():
         print("糖度上　　　 : {}".format(self.sugar_content_S))
         print("------------------------------------------------------------")
 
+    # 画像結合処理(選択式)
     def combine(self, Selection):
 
         if "original" in Selection:
@@ -262,25 +250,36 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in range(783, 790):
+    for i in range(1, 10):
 
+        # データ取得
         cherry_01 = cherry(i)
         cherry_01.open_picture(rotate=True)
+
+        if cherry_01.enable==False:
+            continue
 
         # データ表示
         cherry_01.print_data()
 
+        # 元画像表示
         cherry_01.combine(["original"])
         print_picture("original", cherry_01.original_combine)
 
+        # さくらんぼ検出
         cherry_01.cherry_detection()
-        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img"])
 
+        # 検出結果表示
+        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img"])
         print_picture("red masked", cherry_01.red_masked_img_combine)
         print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
+        print_picture("cherry masked img", cherry_01.cherry_masked_img_combine)
 
+        # トリミング
         cherry_01.trimming(2500)
+
+        # トリミング結果表示
         cherry_01.combine(["trimming_img"])
         print_picture("trimming", cherry_01.trimming_img_combine)
         
