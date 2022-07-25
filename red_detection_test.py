@@ -47,14 +47,21 @@ if __name__ == "__main__":
 
         # マスク画像
         cherry_01.cherry_detection(hsv_1_min=hsv_1_min, hsv_1_max=hsv_1_max, hsv_2_min=hsv_2_min, hsv_2_max=hsv_2_max, area_filter_min=area_filter_min, area_filter_max=area_filter_max)
-        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img"])
+        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img", "cherry_monochrome_inversion_img"])
         print_picture("red masked image", cherry_01.red_masked_img_combine)
         print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
         print_picture("cherry masked img", cherry_01.cherry_masked_img_combine)
+        print_picture("cherry monochrome inversion img", cherry_01.cherry_monochrome_inversion_img_combine)
 
+        # トリミング
         cherry_01.trimming(trim_size)
         cherry_01.combine("trimming_img")
         print_picture("trimming", cherry_01.trimming_img_combine)
+
+        # 白飛び検出
+        cherry_01.detect_saturation()
+        cherry_01.combine(["detect_saturation_img"])
+        print_picture("detect saturation img", cherry_01.detect_saturation_img_combine)
         
         cv2.waitKey(0)

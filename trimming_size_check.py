@@ -67,8 +67,8 @@ with open(output_csv_pass, 'w') as f:
         for dir in cherry_01.pictures:
 
             # 幅, 高さ取得
-            width = cherry_01.pictures[dir].width
-            height = cherry_01.pictures[dir].height
+            width = cherry_01.pictures[dir].cherry_width
+            height = cherry_01.pictures[dir].cherry_height
 
             # csvファイルに出力
             output_line = [cherry_01.num, dir, width, height]

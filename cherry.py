@@ -84,6 +84,11 @@ class cherry():
             # さくらんぼ検出
             self.pictures[dir].cherry_detection()
         
+    def detect_saturation(self):
+
+        for dir in self.pictures:
+            self.pictures[dir].detect_saturation()
+    
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
     def get_data(self, serial_num):
@@ -193,9 +198,17 @@ class cherry():
             pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
             self.detection_img_combine = self.combine_4_picture(pictures)
 
+        if "detect_saturation_img" in Selection:
+            pictures = [self.picture_T.detect_saturation_img, self.picture_B.detect_saturation_img, self.picture_L.detect_saturation_img, self.picture_R.detect_saturation_img]
+            self.detect_saturation_img_combine = self.combine_4_picture(pictures)
+
         if "cherry_monochrome_img" in Selection:
             pictures = [self.picture_T.cherry_monochrome_img, self.picture_B.cherry_monochrome_img, self.picture_L.cherry_monochrome_img, self.picture_R.cherry_monochrome_img]
             self.cherry_monochrome_img_combine = self.combine_4_picture(pictures)
+
+        if "cherry_monochrome_inversion_img" in Selection:
+            pictures = [self.picture_T.cherry_monochrome_inversion_img, self.picture_B.cherry_monochrome_inversion_img, self.picture_L.cherry_monochrome_inversion_img, self.picture_R.cherry_monochrome_inversion_img]
+            self.cherry_monochrome_inversion_img_combine = self.combine_4_picture(pictures)
 
         if "cherry_masked_img" in Selection:
             pictures = [self.picture_T.cherry_masked_img, self.picture_B.cherry_masked_img, self.picture_L.cherry_masked_img, self.picture_R.cherry_masked_img]
