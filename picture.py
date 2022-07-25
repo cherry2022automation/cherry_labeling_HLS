@@ -9,6 +9,7 @@
 
 from pstats import Stats
 import cv2
+from matplotlib.pyplot import bar_label
 import numpy as np
 import copy
 
@@ -25,6 +26,7 @@ class picture():
     cherry_masked_img = None    # さくらんぼ以外の背景を水色にした画像
     cherry_monochrome_img = None
     cherry_monochrome_inversion_img = None
+    saturation_padding_img = None
 
     # マスク情報
     hsv_mask = None             # hsv閾値でのマスク結果
@@ -169,6 +171,49 @@ class picture():
                 width = stats[cv2.CC_STAT_WIDTH]
                 height = stats[cv2.CC_STAT_HEIGHT]
                 self.detect_saturation_img = cv2.rectangle(self.detect_saturation_img, (x, y), (x+width, y+height), (255,255,0), thickness=10)
+
+    # 白飛び補正処理
+    def saturation_padding(self):
+
+        self.saturation_padding_img = copy.copy(self.original)
+        stats = self.saturation_stats
+
+        for n in range(len(self.saturation_stats)):
+
+            # 背景,さくらんぼ領域回避
+            if self.area_filter_min < stats[n][cv2.CC_STAT_AREA]:
+                continue
+
+            # 変数
+            x = stats[n][cv2.CC_STAT_LEFT]
+            y = stats[n][cv2.CC_STAT_TOP]
+            width = stats[n][cv2.CC_STAT_WIDTH]
+            height = stats[n][cv2.CC_STAT_HEIGHT]
+            G = []
+            B = []
+            R = []
+
+            # print(x,y,width,height)
+
+            # 周辺画素の平均値取得
+            for i in range(x, x+width):
+                for j in range(y, y+height):
+                    # print(self.cherry_mask[i][j])
+                    if self.cherry_mask[i][j] == 255:
+                        g, b, r = self.original[i][j]
+                        # print(g, b, r)
+                        G.append(g)
+                        B.append(b)
+                        R.append(r)
+            
+            try:
+                G_ave = sum(G)/len(G)
+                B_ave = sum(B)/len(B)
+                R_ave = sum(R)/len(R)
+            except:
+                continue
+
+            self.saturation_padding_img[self.saturation_labels==n] = [G_ave, B_ave, R_ave]
 
 
     def print_status(self):

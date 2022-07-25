@@ -82,12 +82,13 @@ class cherry():
             self.pictures[dir].mask_red()
 
             # さくらんぼ検出
-            self.pictures[dir].cherry_detection()
-        
-    def detect_saturation(self):
+            self.pictures[dir].cherry_detection()          
+
+    def saturation_padding(self):
 
         for dir in self.pictures:
             self.pictures[dir].detect_saturation()
+            self.pictures[dir].saturation_padding()
     
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
@@ -217,6 +218,10 @@ class cherry():
         if "trimming_img" in Selection:
             pictures = [self.picture_T.trim_img, self.picture_B.trim_img, self.picture_L.trim_img, self.picture_R.trim_img]
             self.trimming_img_combine = self.combine_4_picture(pictures)
+
+        if "saturation_padding_img" in Selection:
+            pictures = [self.picture_T.saturation_padding_img, self.picture_B.saturation_padding_img, self.picture_L.saturation_padding_img, self.picture_R.saturation_padding_img]
+            self.saturation_padding_img_combine = self.combine_4_picture(pictures)
 
     # 4つ並べた画像を生成
     def combine_4_picture(self, pictures):

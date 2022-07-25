@@ -59,9 +59,10 @@ if __name__ == "__main__":
         cherry_01.combine("trimming_img")
         print_picture("trimming", cherry_01.trimming_img_combine)
 
-        # 白飛び検出
-        cherry_01.detect_saturation()
-        cherry_01.combine(["detect_saturation_img"])
+        # 白飛び補正
+        cherry_01.saturation_padding()
+        cherry_01.combine(["detect_saturation_img", "saturation_padding_img"])
         print_picture("detect saturation img", cherry_01.detect_saturation_img_combine)
+        print_picture("saturation padding img combine", cherry_01.saturation_padding_img_combine)
         
         cv2.waitKey(0)
