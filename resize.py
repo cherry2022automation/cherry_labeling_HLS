@@ -65,7 +65,7 @@ def resize():
             failed_num.append(num)
             print(str(num) + "faild")
 
-    print("resize completed")
+    print("\rresize completed")
     print("")
     print("failed number")
     print(failed_num)

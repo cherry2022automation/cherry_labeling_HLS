@@ -85,7 +85,7 @@ def trim():
             failed_num.append(num)
             print("\r" + str(num) + "failed")
 
-    print("trim completed")
+    print("\rtrim completed")
     print("")
     print("failed number")
     print(failed_num)

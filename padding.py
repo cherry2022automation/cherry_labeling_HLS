@@ -80,7 +80,7 @@ def padding():
             failed_num.append(num)
             print("\r" + str(num) + "failed")
 
-    print("padding completed")
+    print("\rpadding completed")
     print("")
     print("failed number")
     print(failed_num)
