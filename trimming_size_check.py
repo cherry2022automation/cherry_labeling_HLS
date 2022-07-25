@@ -16,10 +16,19 @@ import picture
 import cv2
 import csv
 
+open_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025\\"
 output_csv_pass = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\detection_01\\cherry_size.csv"
 output_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\detection_01\\"
 
-cherry_num = 1136
+hsv_1_min = [0, 80, 10]
+hsv_1_max = [30, 255, 255]
+hsv_2_min = [160, 80, 10]
+hsv_2_max = [179, 255, 255]
+
+area_filter_min = 20000
+area_filter_max = 250000
+
+cherry_num = 1931
 
 width_max = 0
 height_max = 0
@@ -40,20 +49,17 @@ with open(output_csv_pass, 'w') as f:
 
     for i in range(1, cherry_num+1):
 
-        cherry_01 = cherry.cherry(i)
+        cherry_01 = cherry.cherry(i, picture_dir=open_dir)
 
         if cherry_01.enable == False:
             continue
 
-        cherry_01.original_combine_en = False
-        cherry_01.masked_img_combine_en = False
-        cherry_01.monochrome_img_combine_en = False
-        # cherry_01.detection_img_combine_en = False
-
         # さくらんぼ検出
         try:
-            cherry_01.cherry_detection()
-            cv2.imwrite(output_dir + cherry_01.file_name + "_detection.jpeg", resize(cherry_01.detection_img_combine))
+            cherry_01.open_picture(rotate=True)
+            cherry_01.cherry_detection(hsv_1_min=hsv_1_min, hsv_1_max=hsv_1_max, hsv_2_min=hsv_2_min, hsv_2_max=hsv_2_max, area_filter_min=area_filter_min, area_filter_max=area_filter_max)
+            cherry_01.combine(["detection_img"])
+            cv2.imwrite(output_dir + cherry_01.file_name + "_detection.jpeg", cherry_01.detection_img_combine)
         except:
             detection_miss.append(i)
             continue
@@ -64,6 +70,7 @@ with open(output_csv_pass, 'w') as f:
             width = cherry_01.pictures[dir].width
             height = cherry_01.pictures[dir].height
 
+            # csvファイルに出力
             output_line = [cherry_01.num, dir, width, height]
             writer.writerow(output_line)
             
@@ -78,7 +85,7 @@ with open(output_csv_pass, 'w') as f:
                 height_max = height
                 height_max_num = i
 
-# 最大値更新
+# 結果表示
 print("width_max={}, height_max={}".format(width_max, height_max))
 print("width_max_num={}, height_max_num={}".format(width_max_num, height_max_num))
 print("detecthion miss = {}".format(len(detection_miss)))
