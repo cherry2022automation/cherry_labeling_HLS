@@ -8,6 +8,7 @@ os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = pow(2,40).__str__()  # opencvの読�
 import cv2
 import numpy as np
 import csv
+from matplotlib import pyplot as plt
 
 import picture
 
@@ -90,6 +91,10 @@ class cherry():
             self.pictures[dir].detect_saturation()
             self.pictures[dir].saturation_padding()
     
+    def smoothing(self, size):
+        for dir in self.pictures:
+            self.pictures[dir].smoothing(size)
+
     # サクランボの写真とデータを読み込み
     # serial_num:サクランボのシリアルナンバー
     def get_data(self, serial_num):
@@ -223,6 +228,10 @@ class cherry():
             pictures = [self.picture_T.saturation_padding_img, self.picture_B.saturation_padding_img, self.picture_L.saturation_padding_img, self.picture_R.saturation_padding_img]
             self.saturation_padding_img_combine = self.combine_4_picture(pictures)
 
+        if "smoothing_img" in Selection:
+            pictures = [self.picture_T.smoothing_img, self.picture_B.smoothing_img, self.picture_L.smoothing_img, self.picture_R.smoothing_img]
+            self.smoothing_img_combine = self.combine_4_picture(pictures)
+
     # 4つ並べた画像を生成
     def combine_4_picture(self, pictures):
 
@@ -254,7 +263,74 @@ class cherry():
 
         return combine_img
 
+    # HLSヒストグラムを取得
+    def get_hist(self, img, mask_img):
 
+        hls_img = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        h, l, s = hls_img[:,:,0], hls_img[:,:,1], hls_img[:,:,2]
+        mask = mask_img[:,:,0]
+
+        hist_h = cv2.calcHist([h],[0],mask,[256],[0,256])
+        hist_l = cv2.calcHist([l],[0],mask,[256],[0,256])
+        hist_s = cv2.calcHist([s],[0],mask,[256],[0,256])
+
+        return hist_h, hist_l, hist_s
+
+    # HLSヒストグラムを描画
+    def draw_hist(self, img=None, mask_img=None, percent=False, H_draw=True, L_draw=True, S_draw=True, hist_h=None, hist_l=None, hist_s=None, label=None, mooving_ave_size_HLS=[0,0,0]):
+        fig_h = plt.figure(figsize=(12,8))
+        ax_h = fig_h.add_subplot()
+        fig_ls = plt.figure(figsize=(12,8))
+        ax_ls = fig_ls.add_subplot()
+
+        # 画像からヒストグラム取得
+        if (H_draw==True and hist_h==None) or (L_draw==True and hist_l==None) or (L_draw==True and hist_s==None):
+            load_hist_h, load_hist_l, load_hist_s = self.get_hist(img, mask_img)
+
+            if hist_h==None:
+                hist_h = load_hist_h
+            if hist_l==None:
+                hist_l = load_hist_l
+            if hist_s==None:
+                hist_s = load_hist_s
+
+        hist_h , hist_l, hist_s = self.calc_hist(hist_h, hist_l, hist_s, percent=percent, mooving_ave_size_HLS=mooving_ave_size_HLS)
+
+        if label==None:
+            label=self.file_name
+        
+        if H_draw==True:
+            ax_h.plot(hist_h, label=label + "_h")
+        if L_draw==True:
+            ax_ls.plot(hist_l, label=label + "_l")
+        if S_draw==True:
+            ax_ls.plot(hist_s, label=label + "_s")
+
+        plt.legend()
+        plt.show()
+
+    def calc_hist(self, hist_h, hist_l, hist_s, percent=False, mooving_ave_size_HLS=[0,0,0]):
+
+        # %へ変換
+        if percent==True:
+            hist_h = [n/sum(hist_h)*100 for n in hist_h]
+            hist_l = [n/sum(hist_l)*100 for n in hist_l]
+            hist_s = [n/sum(hist_s)*100 for n in hist_s]
+
+        # 移動平均
+        hist = [hist_h, hist_l, hist_s]
+        for n in range(3):
+            if mooving_ave_size_HLS[n]!=0:
+                for i in range(len(hist[n])):
+                    try:
+                        datas = []
+                        for j in range(mooving_ave_size_HLS[n]):
+                            datas.append(hist[n][i+j][0])
+                        hist[n][i][0] = sum(datas)/len(datas)
+                    except:
+                        pass
+
+        return hist[0], hist[1], hist[2]
 
 # 画像表示用関数
 # リサイズして表示
