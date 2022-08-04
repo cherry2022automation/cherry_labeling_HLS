@@ -277,7 +277,7 @@ class cherry():
         return hist_h, hist_l, hist_s
 
     # HLSヒストグラムを描画
-    def draw_hist(self, img=None, mask_img=None, percent=False, H_draw=True, L_draw=True, S_draw=True, hist_h=None, hist_l=None, hist_s=None, label=None, mooving_ave_size_HLS=[0,0,0]):
+    def draw_hist(self, img=None, mask_img=None, percent=False, H_draw=True, L_draw=True, S_draw=True, hist_h=None, hist_l=None, hist_s=None, label=None, mooving_ave_size_HLS=[0,0,0], H_range=[-20, 40]):
         fig_h = plt.figure(figsize=(12,8))
         ax_h = fig_h.add_subplot()
         fig_ls = plt.figure(figsize=(12,8))
@@ -294,13 +294,13 @@ class cherry():
             if hist_s==None:
                 hist_s = load_hist_s
 
-        hist_h , hist_l, hist_s = self.calc_hist(hist_h, hist_l, hist_s, percent=percent, mooving_ave_size_HLS=mooving_ave_size_HLS)
+        hist_h_x, hist_h , hist_l, hist_s = self.calc_hist(hist_h, hist_l, hist_s, percent=percent, mooving_ave_size_HLS=mooving_ave_size_HLS, H_range=H_range)
 
         if label==None:
             label=self.file_name
         
         if H_draw==True:
-            ax_h.plot(hist_h, label=label + "_h")
+            ax_h.plot(hist_h_x, hist_h, label=label + "_h")
         if L_draw==True:
             ax_ls.plot(hist_l, label=label + "_l")
         if S_draw==True:
@@ -309,7 +309,7 @@ class cherry():
         plt.legend()
         plt.show()
 
-    def calc_hist(self, hist_h, hist_l, hist_s, percent=False, mooving_ave_size_HLS=[0,0,0]):
+    def calc_hist(self, hist_h, hist_l, hist_s, percent=False, mooving_ave_size_HLS=[0,0,0], H_range=[-20, 40]):
 
         # %へ変換
         if percent==True:
@@ -330,8 +330,19 @@ class cherry():
                     except:
                         pass
 
-        return hist[0], hist[1], hist[2]
 
+        H_min = H_range[0]
+        H_max = H_range[1]
+        hist_h_x = np.arange(H_min, H_max, 1)
+
+        hist_h_y = []
+        for i in range(180+H_min, 180):
+            hist_h_y.append(hist_h[i])
+        for i in range(H_max):
+            hist_h_y.append(hist_h[i])
+        
+
+        return hist_h_x, hist_h_y, hist[1], hist[2]
 # 画像表示用関数
 # リサイズして表示
 def print_picture(window_name, picture):
