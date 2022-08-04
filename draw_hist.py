@@ -21,10 +21,7 @@ for num in [1,3,9,15,1121]:
     hist_l = histograms[str(num)]['l']
     hist_s = histograms[str(num)]['s']
 
-    # %へ変換
-    # hist_h = [n/sum(hist_h)*100 for n in hist_h]
-    hist_l = [n/sum(hist_l)*100 for n in hist_l]
-    # hist_s = [n/sum(hist_s)*100 for n in hist_s]
+    hist_h, hist_l, hist_s = cherry_01.calc_hist(hist_h, hist_l, hist_s, percent=True, mooving_ave_size_HLS=[0,4,3])
     
     # ax.plot(hist_h, label=cherry_01.file_name + "_h")
     ax.plot(hist_l, label=cherry_01.file_name + "_l")

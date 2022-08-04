@@ -1,10 +1,11 @@
+from numpy import true_divide
 import cherry
 import cv2
 
 from picture import picture
 
 
-pic_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025_trim_600\\"
+pic_dir = "C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025_trim_640_padding\\"
 
 
 hsv_1_min = [0, 80, 10]
@@ -47,12 +48,12 @@ if __name__ == "__main__":
 
         # マスク画像
         cherry_01.cherry_detection(hsv_1_min=hsv_1_min, hsv_1_max=hsv_1_max, hsv_2_min=hsv_2_min, hsv_2_max=hsv_2_max, area_filter_min=area_filter_min, area_filter_max=area_filter_max)
-        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img", "cherry_monochrome_inversion_img"])
+        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img", "cherry_monochrome_img"])
         print_picture("red masked image", cherry_01.red_masked_img_combine)
         print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
         print_picture("cherry masked img", cherry_01.cherry_masked_img_combine)
-        print_picture("cherry monochrome inversion img", cherry_01.cherry_monochrome_inversion_img_combine)
+        print_picture("cherry monochrome inversion img", cherry_01.cherry_monochrome_img_combine)
 
         # トリミング
         cherry_01.trimming(trim_size)
@@ -64,5 +65,11 @@ if __name__ == "__main__":
         cherry_01.combine(["detect_saturation_img", "saturation_padding_img"])
         print_picture("detect saturation img", cherry_01.detect_saturation_img_combine)
         print_picture("saturation padding img combine", cherry_01.saturation_padding_img_combine)
+
+        # cherry_01.smoothing(10)
+        # cherry_01.combine(["smoothing_img"])
+        # print_picture("smoothing img combine", cherry_01.smoothing_img_combine)
+
+        cherry_01.draw_hist(img=cherry_01.original_combine, mask_img=cherry_01.cherry_monochrome_img_combine, percent=True, mooving_ave_size_HLS=[0,4,3])
         
         cv2.waitKey(0)

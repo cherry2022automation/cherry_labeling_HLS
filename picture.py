@@ -27,6 +27,7 @@ class picture():
     cherry_monochrome_img = None
     cherry_monochrome_inversion_img = None
     saturation_padding_img = None
+    smoothing_img = None
 
     # マスク情報
     hsv_mask = None             # hsv閾値でのマスク結果
@@ -260,3 +261,9 @@ class picture():
         monochrome_img[mask!=0] = [255,255,255]
     
         return mask, masked_img, monochrome_img
+
+    
+    def smoothing(self, size):
+        img = self.saturation_padding_img
+        blur = cv2.blur(img, (size, size))
+        self.smoothing_img = blur
