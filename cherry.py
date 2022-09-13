@@ -47,6 +47,8 @@ class cherry():
     sugar_content_B = None
     sugar_content_S = None
 
+    guess_grade = None
+
     # オブジェクト初期化関数
     # オブジェクト生成時に実行
     def __init__(self, serial_num, picture_dir=None):
@@ -126,12 +128,17 @@ class cherry():
         self.sugar_content_B = data[line][SUGAR_CONTENT_B]
         self.sugar_content_S = data[line][SUGAR_CONTENT_S]
 
+        
+
         # 撮影成功した画像かを判定
         if self.weight != "":
             self.enable = True
         else:
             self.enable = False
             return
+
+        no, var, gra, size, date, time = self.file_name.split("_")
+        self.size = size
 
         # 数値に変換
         try:
@@ -178,6 +185,7 @@ class cherry():
         print("有効/無効　　: {}".format(self.enable))
         print("品種　　　　 : {}".format(self.variety))
         print("等級　　　　 : {}".format(self.grade))
+        print("サイズ　　　 : {}".format(self.size))
         print("重量　　　　 : {} [g]".format(self.weight))
         print("極径　　　　 : {} [mm]".format(self.polar_diameter))
         print("赤道径　　　 : {} [mm]".format(self.equatorial_diameter))
@@ -330,7 +338,6 @@ class cherry():
                     except:
                         pass
 
-
         H_min = H_range[0]
         H_max = H_range[1]
         hist_h_x = np.arange(H_min, H_max, 1)
@@ -340,9 +347,22 @@ class cherry():
             hist_h_y.append(hist_h[i])
         for i in range(H_max):
             hist_h_y.append(hist_h[i])
-        
 
-        return hist_h_x, hist_h_y, hist[1], hist[2]
+        # 折り返し加算
+        x_range_num = (H_max-H_min)
+        new_hist_h_x = np.arange(0, 1, 1/(x_range_num/2))
+        
+        new_hist_h_y = []
+        for i in range(int(x_range_num/2)):
+            new_hist_h_y.append(hist_h_y[i])
+        for i in range(int(x_range_num/2)):
+            new_hist_h_y[int(x_range_num/2)-i-1] += hist_h_y[int(x_range_num/2)+i]
+
+        return new_hist_h_x, new_hist_h_y, hist[1], hist[2]
+        # return hist_h_x, hist_h_y, hist[1], hist[2]
+
+
+
 # 画像表示用関数
 # リサイズして表示
 def print_picture(window_name, picture):
