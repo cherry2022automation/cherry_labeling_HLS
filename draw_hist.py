@@ -3,21 +3,23 @@ from numpy import histogram
 import pickle
 import cherry
 
+font_size = 30
+label_size = 25
+
 hist_data_pass = "C:\\Users\\cherr\\Desktop\\data\\Program\\cherry_labeling_HLS\\HLS_hist_data.pkl"
 output_dir = "C:\\Users\\cherr\\Desktop\\data\\histogram\\satonishiki_all\\"
 
 grade_color = {"特秀":"b", "秀":"g", "マル秀":"r", "ハネ出し":"c", "捨て":"m"}
 
+hls_data = [1,251,307,569,673,1420,1427] # 特秀Hまとめ
 # hls_data = [239,251,244,327,673,684] # 特秀Lまとめ
-# hls_data = [1,251,307,569,673,1420,1427] # 特秀Hまとめ
-# hls_data = [303,341,350,576,620,653,1137,] # 特秀まとめ
-# hls_data = [182,489,845,881,993,1014] # 秀Lまとめ
-# hls_data = [6,65,444,1005,1015,1232] # 秀Hまとめ
-# hls_data = [14,189,210,217,539,925,1042] # マル秀Hまとめ
-# hls_data = [14,185,201,525,1044,1274]
 # hls_data = [576,620,1137,1384,1397] # 特秀Sまとめ
+# hls_data = [6,65,444,1005,1015,1232] # 秀Hまとめ
+# hls_data = [182,489,845,881,993,1014] # 秀Lまとめ
 # hls_data = [57,158,734,987,1248] # 秀Sまとめ
-hls_data = [13,14,191,538,924,937,1045] # マル秀Sまとめ
+# hls_data = [14,189,210,217,539,925,1042] # マル秀H
+# hls_data = [14,185,201,525,1044,1274] # マル秀L
+# hls_data = [13,14,191,538,924,937,1045] # マル秀Sまとめ
 
 
 with open(hist_data_pass, "rb") as f:
@@ -33,7 +35,7 @@ def add_hist(num):
     hist_l = histograms[str(num)]['l']
     hist_s = histograms[str(num)]['s']
 
-    hist_h_x, hist_h_y, hist_l, hist_s = cherry_01.calc_hist(hist_h, hist_l, hist_s, percent=True, mooving_ave_size_HLS=[0,4,3], H_range=[-5, 15])
+    hist_h_x, hist_h_y, hist_l, hist_s = cherry_01.calc_hist(hist_h, hist_l, hist_s, percent=True, folding=False, mooving_ave_size_HLS=[0,4,3], H_range=[-5, 15])
     
     # ax_h.plot(hist_h_x, hist_h_y, label=cherry_01.file_name + "_h", color=grade_color[cherry_01.grade])
     # ax_l.plot(hist_l, label=cherry_01.file_name + "_l", color=grade_color[cherry_01.grade])
@@ -54,19 +56,22 @@ def save_hist(cycle):
 
 def draw_hist():
     ax_h.legend()
-    ax_h.set_title('Hue')
-    ax_h.set_ylabel("Percentage of pixels")
-    ax_h.set_xlabel("Value")
+    ax_h.set_title('Hue', fontsize=font_size)
+    ax_h.set_ylabel("Percentage of pixels", fontsize=font_size)
+    ax_h.set_xlabel("Value", fontsize=font_size)
+    ax_h.tick_params(labelsize=label_size)
 
     ax_l.legend()
-    ax_l.set_title('Lightness')
-    ax_l.set_ylabel("Percentage of pixels")
-    ax_l.set_xlabel("Value")
+    ax_l.set_title('Lightness', fontsize=font_size)
+    ax_l.set_ylabel("Percentage of pixels", fontsize=font_size)
+    ax_l.set_xlabel("Value", fontsize=font_size)
+    ax_l.tick_params(labelsize=label_size)
 
     ax_s.legend()
-    ax_s.set_title('Saturation')
-    ax_s.set_ylabel("Percentage of pixels")
-    ax_s.set_xlabel("Value")
+    ax_s.set_title('Saturation', fontsize=font_size)
+    ax_s.set_ylabel("Percentage of pixels", fontsize=font_size)
+    ax_s.set_xlabel("Value", fontsize=font_size)
+    ax_s.tick_params(labelsize=label_size)
 
 fig_h = plt.figure(figsize=(12,8))
 ax_h = fig_h.add_subplot(111)
