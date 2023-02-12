@@ -317,7 +317,7 @@ class cherry():
         plt.legend()
         plt.show()
 
-    def calc_hist(self, hist_h, hist_l, hist_s, percent=False, mooving_ave_size_HLS=[0,0,0], H_range=[-20, 40]):
+    def calc_hist(self, hist_h, hist_l, hist_s, percent=False, folding=True, mooving_ave_size_HLS=[0,0,0], H_range=[-20, 40]):
 
         # %へ変換
         if percent==True:
@@ -349,14 +349,19 @@ class cherry():
             hist_h_y.append(hist_h[i])
 
         # 折り返し加算
-        x_range_num = (H_max-H_min)
-        new_hist_h_x = np.arange(0, 1, 1/(x_range_num/2))
+        if folding==True:
+            x_range_num = (H_max-H_min)
+            new_hist_h_x = np.arange(0, 1, 1/(x_range_num/2))
         
-        new_hist_h_y = []
-        for i in range(int(x_range_num/2)):
-            new_hist_h_y.append(hist_h_y[i])
-        for i in range(int(x_range_num/2)):
-            new_hist_h_y[int(x_range_num/2)-i-1] += hist_h_y[int(x_range_num/2)+i]
+            new_hist_h_y = []
+            for i in range(int(x_range_num/2)):
+                new_hist_h_y.append(hist_h_y[i])
+            for i in range(int(x_range_num/2)):
+                new_hist_h_y[int(x_range_num/2)-i-1] += hist_h_y[int(x_range_num/2)+i]
+
+        else:
+            new_hist_h_x = hist_h_x
+            new_hist_h_y = hist_h_y
 
         return new_hist_h_x, new_hist_h_y, hist[1], hist[2]
         # return hist_h_x, hist_h_y, hist[1], hist[2]
