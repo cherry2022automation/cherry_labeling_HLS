@@ -194,54 +194,54 @@ class cherry():
         print("------------------------------------------------------------")
 
     # 画像結合処理(選択式)
-    def combine(self, Selection):
+    def combine(self, Selection, blank_color=(0,0,0)):
 
         if "original" in Selection:
             pictures = [self.picture_T.original, self.picture_B.original, self.picture_L.original, self.picture_R.original]
-            self.original_combine = self.combine_4_picture(pictures)
+            self.original_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "red_monochrome_img" in Selection:
             pictures = [self.picture_T.red_monochrome_img, self.picture_B.red_monochrome_img, self.picture_L.red_monochrome_img, self.picture_R.red_monochrome_img]
-            self.red_monochrome_img_combine = self.combine_4_picture(pictures)
+            self.red_monochrome_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "red_masked_img" in Selection:
             pictures = [self.picture_T.red_masked_img, self.picture_B.red_masked_img, self.picture_L.red_masked_img, self.picture_R.red_masked_img]
-            self.red_masked_img_combine = self.combine_4_picture(pictures)
+            self.red_masked_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "detection_img" in Selection:
             pictures = [self.picture_T.detection_img, self.picture_B.detection_img, self.picture_L.detection_img, self.picture_R.detection_img]
-            self.detection_img_combine = self.combine_4_picture(pictures)
+            self.detection_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "detect_saturation_img" in Selection:
             pictures = [self.picture_T.detect_saturation_img, self.picture_B.detect_saturation_img, self.picture_L.detect_saturation_img, self.picture_R.detect_saturation_img]
-            self.detect_saturation_img_combine = self.combine_4_picture(pictures)
+            self.detect_saturation_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "cherry_monochrome_img" in Selection:
             pictures = [self.picture_T.cherry_monochrome_img, self.picture_B.cherry_monochrome_img, self.picture_L.cherry_monochrome_img, self.picture_R.cherry_monochrome_img]
-            self.cherry_monochrome_img_combine = self.combine_4_picture(pictures)
+            self.cherry_monochrome_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "cherry_monochrome_inversion_img" in Selection:
             pictures = [self.picture_T.cherry_monochrome_inversion_img, self.picture_B.cherry_monochrome_inversion_img, self.picture_L.cherry_monochrome_inversion_img, self.picture_R.cherry_monochrome_inversion_img]
-            self.cherry_monochrome_inversion_img_combine = self.combine_4_picture(pictures)
+            self.cherry_monochrome_inversion_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "cherry_masked_img" in Selection:
             pictures = [self.picture_T.cherry_masked_img, self.picture_B.cherry_masked_img, self.picture_L.cherry_masked_img, self.picture_R.cherry_masked_img]
-            self.cherry_masked_img_combine = self.combine_4_picture(pictures)
+            self.cherry_masked_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "trimming_img" in Selection:
             pictures = [self.picture_T.trim_img, self.picture_B.trim_img, self.picture_L.trim_img, self.picture_R.trim_img]
-            self.trimming_img_combine = self.combine_4_picture(pictures)
+            self.trimming_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "saturation_padding_img" in Selection:
             pictures = [self.picture_T.saturation_padding_img, self.picture_B.saturation_padding_img, self.picture_L.saturation_padding_img, self.picture_R.saturation_padding_img]
-            self.saturation_padding_img_combine = self.combine_4_picture(pictures)
+            self.saturation_padding_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
         if "smoothing_img" in Selection:
             pictures = [self.picture_T.smoothing_img, self.picture_B.smoothing_img, self.picture_L.smoothing_img, self.picture_R.smoothing_img]
-            self.smoothing_img_combine = self.combine_4_picture(pictures)
+            self.smoothing_img_combine = self.combine_4_picture(pictures, blank_color=blank_color)
 
     # 4つ並べた画像を生成
-    def combine_4_picture(self, pictures):
+    def combine_4_picture(self, pictures, blank_color=(0,0,0)):
 
         # 画像サイズ取得
         height_T, width_T, channnels = pictures[0].shape[:3]
@@ -258,10 +258,10 @@ class cherry():
         blank_BL_height = (height_T + height_B) - (blank_TL_height + height_L)
         blank_BR_height = (height_T + height_B) - (blank_TR_height + height_R)
             
-        blank_TL = np.zeros((blank_TL_height, blank_L_width, 3)).astype('uint8')
-        blank_TR = np.zeros((blank_TR_height, blank_R_width, 3)).astype('uint8')
-        blank_BL = np.zeros((blank_BL_height, blank_L_width, 3)).astype('uint8')
-        blank_BR = np.zeros((blank_BR_height, blank_R_width, 3)).astype('uint8')
+        blank_TL = np.full((blank_TL_height, blank_L_width, 3), blank_color).astype('uint8')
+        blank_TR = np.full((blank_TL_height, blank_L_width, 3), blank_color).astype('uint8')
+        blank_BL = np.full((blank_TL_height, blank_L_width, 3), blank_color).astype('uint8')
+        blank_BR = np.full((blank_TL_height, blank_L_width, 3), blank_color).astype('uint8')
 
         # 画像結合
         img_left = cv2.vconcat([blank_TL, pictures[2], blank_BL])
@@ -283,6 +283,24 @@ class cherry():
         hist_s = cv2.calcHist([s],[0],mask,[256],[0,256])
 
         return hist_h, hist_l, hist_s
+
+    def get_hist_for_2dhist(self, img, mask_img):
+
+        hls_img = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        h, l, s = hls_img[:,:,0], hls_img[:,:,1], hls_img[:,:,2]
+        mask = mask_img[:,:,0]
+
+        h=np.ravel(h)
+        l=np.ravel(l)
+        s=np.ravel(s)
+        mask=np.ravel(mask)
+        
+        h = h[mask!=0]
+        l = l[mask!=0]
+        s = s[mask!=0]
+
+        return h, l, s
+        
 
     # HLSヒストグラムを描画
     def draw_hist(self, img=None, mask_img=None, percent=False, H_draw=True, L_draw=True, S_draw=True, hist_h=None, hist_l=None, hist_s=None, label=None, mooving_ave_size_HLS=[0,0,0], H_range=[-20, 40]):
