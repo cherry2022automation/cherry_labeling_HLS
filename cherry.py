@@ -284,6 +284,7 @@ class cherry():
 
         return hist_h, hist_l, hist_s
 
+    # HLS値を取得(各1次)
     def get_hist_for_2dhist(self, img, mask_img):
 
         hls_img = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
@@ -384,13 +385,99 @@ class cherry():
         return new_hist_h_x, new_hist_h_y, hist[1], hist[2]
         # return hist_h_x, hist_h_y, hist[1], hist[2]
 
+    def grade_detection_tokushu_area(self, img, toku_hls_min, toku_hls_max):
+        
+        cherry_area = self.picture_B.cherry_area+self.picture_T.cherry_area+self.picture_L.cherry_area+self.picture_R.cherry_area
+        tokushu_area = self.calc_area_hls(img, toku_hls_min, toku_hls_max)
+        per = tokushu_area / cherry_area
+        if 0.1 < per:
+            self.guess_grade = "特秀"
+        elif 0.01 < per:
+            self.guess_grade = "秀"
+        else:
+            self.guess_grade = "マル秀"
+        return self.guess_grade
 
+    # 等級識別(等級面積比較)
+    def grade_detection_area_compare(self, img, toku_hls_min, toku_hls_max, shu_hls_min, shu_hls_max, maru_hls_min, maru_hls_max):
+        
+        # 各等級面積取得
+        tokushu_area = self.calc_area_hls(img, toku_hls_min, toku_hls_max)
+        shu_area = self.calc_area_hls(img, shu_hls_min, shu_hls_max)
+        marushu_area = self.calc_area_hls(img, maru_hls_min, maru_hls_max)
+        
+        # 等級識別(面積比較)
+        if shu_area<tokushu_area and marushu_area<tokushu_area:
+            self.guess_grade = "特秀"
+        elif tokushu_area<shu_area and marushu_area<shu_area:
+            self.guess_grade = "秀"
+        elif tokushu_area<marushu_area and shu_area<marushu_area:
+            self.guess_grade = "マル秀"
+        else:
+            self.guess_grade = "?"
+        
+        return self.guess_grade
+
+    # 面積計算(hls指定範囲)
+    def calc_area_hls(self, img, range_min, range_max):
+        
+        hls_img = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        # 領域取得
+        hls_range_min_1, hls_range_max_1, hls_range_min_2, hls_range_max_2 = self.hls_range(range_min, range_max)
+        # マスク生成
+        mask1 = cv2.inRange(hls_img, hls_range_min_1, hls_range_max_1)
+        mask2 = cv2.inRange(hls_img, hls_range_min_2, hls_range_max_2)
+        mask = mask1 + mask2
+        # マスク画像生成
+        masked_img = cv2.bitwise_and(img, img, mask=mask)
+        # ラベリング
+        retval, labels, stats, centroids = cv2.connectedComponentsWithStats(mask)
+        # 面積総和
+        area = 0
+        for i, row in enumerate(stats):
+            if i!=0:
+                area += row[cv2.CC_STAT_AREA]
+
+        # cv2.imshow("tokushu_area", masked_img)
+        # cv2.waitKey(0)
+        return area
+
+    # hls範囲計算
+    def hls_range(self, range_min, range_max):
+        hls_min = 0
+        h_max = 179
+        ls_max = 255
+        h_min_1, h_max_1, h_min_2, h_max_2 = self.single_range(hls_min, h_max, range_min[0], range_max[0])
+        l_min_1, l_max_1, l_min_2, l_max_2 = self.single_range(hls_min, ls_max, range_min[1], range_max[1])
+        s_min_1, s_max_1, s_min_2, s_max_2 = self.single_range(hls_min, ls_max, range_min[2], range_max[2])
+        hls_range_min_1 = np.array([h_min_1, l_min_1, s_min_1])
+        hls_range_max_1 = np.array([h_max_1, l_max_1, s_max_1])
+        hls_range_min_2 = np.array([h_min_2, l_min_2, s_min_2])
+        hls_range_max_2 = np.array([h_max_2, l_max_2, s_max_2])
+        return hls_range_min_1, hls_range_max_1, hls_range_min_2, hls_range_max_2
+
+    # 単体抽出範囲取得
+    def single_range(self, range_min, range_max, min, max):
+
+        if min <= max:
+            min_1 = min
+            max_1 = max
+            min_2 = min
+            max_2 = max
+
+        elif max < min:
+            min_1 = range_min
+            max_1 = max
+            min_2 = min
+            max_2 = range_max
+
+        return min_1, max_1, min_2, max_2
 
 # 画像表示用関数
 # リサイズして表示
-def print_picture(window_name, picture):
+def print_picture(window_name, picture, scale=1):
         
-        magnification = 0.125
+        magnification = scale
         img = cv2.resize(picture, dsize=None, fx=magnification, fy=magnification)
         cv2.imshow(window_name, img)
         # cv2.waitKey(0)
@@ -398,11 +485,19 @@ def print_picture(window_name, picture):
 # 画像の読み込み、表示テスト
 if __name__ == "__main__":
 
-    for i in range(1, 10):
+    cherry_hsv_1_min = [0, 80, 10]
+    cherry_hsv_1_max = [30, 255, 255]
+    cherry_hsv_2_min = [160, 80, 10]
+    cherry_hsv_2_max = [179, 255, 255]
+    area_filter_min = 20000
+    area_filter_max = 250000
+
+    for i in [33,1133]:
 
         # データ取得
-        cherry_01 = cherry(i)
-        cherry_01.open_picture(rotate=True)
+        cherry_01 = cherry(i, picture_dir="C:\\Users\\cherr\\Desktop\\data\\cherry_photo\\resize_025_trim_640\\")
+        # cherry_01.open_picture(rotate=True)
+        cherry_01.open_picture()
 
         if cherry_01.enable==False:
             continue
@@ -415,14 +510,18 @@ if __name__ == "__main__":
         print_picture("original", cherry_01.original_combine)
 
         # さくらんぼ検出
-        cherry_01.cherry_detection()
+        cherry_01.cherry_detection(hsv_1_min=cherry_hsv_1_min, hsv_1_max=cherry_hsv_1_max, hsv_2_min=cherry_hsv_2_min, hsv_2_max=cherry_hsv_2_max, area_filter_min=area_filter_min, area_filter_max=area_filter_max)
 
         # 検出結果表示
-        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img"])
-        print_picture("red masked", cherry_01.red_masked_img_combine)
-        print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
+        cherry_01.combine(["red_masked_img", "red_monochrome_img", "detection_img", "cherry_masked_img", "cherry_monochrome_img"])
+        # print_picture("red masked", cherry_01.red_masked_img_combine)
+        # print_picture("red monochrome", cherry_01.red_monochrome_img_combine)
         print_picture("detection", cherry_01.detection_img_combine)
-        print_picture("cherry masked img", cherry_01.cherry_masked_img_combine)
+        # print_picture("cherry masked img", cherry_01.cherry_masked_img_combine)
+        print_picture("cherry monochrome img", cherry_01.cherry_monochrome_img_combine)
+
+        print_picture("detection B", cherry_01.picture_B.detection_img)
+        print_picture("cherry monochrome B", cherry_01.picture_B.cherry_monochrome_img)
 
         # トリミング
         cherry_01.trimming(2500)
